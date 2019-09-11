@@ -1,0 +1,18 @@
+<div class="parent">
+    <div class="child input-box">
+        <div class="input-header">
+            Login
+        </div>
+        <div class="input-body">
+            <div class="inline-input-field">
+                <span class="ui-float-label">
+                    <input id="userid-float" class="input-field" type="number" pInputText [(ngModel)]="userid" />
+                    <label for="userid-float">ID</label>
+                </span>
+            </div>
+            <div class="inline-button">
+                <button pButton type="button" label="Ok" (click)="loginWithId($event)"></button>
+            </div>
+        </div>
+    </div>
+</div>
