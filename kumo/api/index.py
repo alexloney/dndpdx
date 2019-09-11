@@ -1,8 +1,9 @@
-from flask import Flask, request
+from flask import Flask, request, Response
 from flask_restful import Resource, Api
 from sqlalchemy import create_engine
 from json import dumps
 from flask import jsonify
+import json
 
 # db_connect = create_engine('sqlite:///chinook.db')
 app = Flask(__name__)
@@ -31,6 +32,17 @@ class Employees_Name(Resource):
         # return jsonify(result)
         return {'test3': employee_id}
         
+class Users(Resource):
+    def get(self, user_id):
+        response_str = json.dumps({
+            'id': user_id,
+            'name': 'Alex Loney'
+        })
+        resp = Response(response_str)
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp
+
+api.add_resource(Users, '/users/<user_id>')
 
 api.add_resource(Employees, '/employees') # Route_1
 api.add_resource(Tracks, '/tracks') # Route_2
