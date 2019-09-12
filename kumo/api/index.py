@@ -4,9 +4,20 @@ from sqlalchemy import create_engine
 from json import dumps
 from flask import jsonify
 
-# db_connect = create_engine('sqlite:///chinook.db')
+db_connect = create_engine('sqlite:///database.db')
 app = Flask(__name__)
 api = Api(app)
+
+USERS_TABLE = 'Users'
+
+def run_setup():
+    conn = db_connect.connect()
+    query = conn.execute("SELECT name FROM sqlite_master WHERE type = 'table' AND name = '" + USERS_TABLE + "'")
+    result = query.fetchone()
+    if result == None:
+        print('Creating tables')
+
+        
 
 class Employees(Resource):
     def get(self):
@@ -38,4 +49,5 @@ api.add_resource(Employees_Name, '/employees/<employee_id>') # Route_3
 
 
 if __name__ == '__main__':
-     app.run(port='5002')
+    run_setup()
+    app.run(port='5002')
