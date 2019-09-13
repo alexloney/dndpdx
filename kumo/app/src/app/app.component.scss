@@ -1,8 +1,10 @@
+@import '../variables';
+
 .body-container {
     position: fixed;
     top: 0;
     left: 0;
     height: 100%;
     width: 100%;
-    background-color: #24272B;
+    background-color: $color5;
 }

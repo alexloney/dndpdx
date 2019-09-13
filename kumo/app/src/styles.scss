@@ -1,1 +1,60 @@
 /* You can add global styles to this file, and also import other style files */
+@import './variables.scss';
+
+html {
+    color: #ffffff
+}
+
+// **********************************************
+// PrimeNG Buttons
+// **********************************************
+
+.ui-button {
+    background-color: $color1 !important;
+    border-color: $color2 !important;
+}
+
+
+// **********************************************
+// PrimeNG Dialogs
+// **********************************************
+
+// Container element
+.ui-dialog {
+
+}
+
+// Container of header.
+.ui-dialog-titlebar {
+    background-color: $color5 !important;
+    color: $fontColor1 !important;
+}
+
+// Header element.
+.ui-dialog-title {
+
+}
+
+// Icon container inside header.
+.ui-dialog-titlebar-icon {
+
+}
+
+// Close icon element.
+.ui-dialog-titlebar-close {
+
+}
+
+// Content element.
+.ui-dialog-content {
+}
+
+// Footer element.
+.ui-dialog-footer {
+
+}
+
+.ui-progress-spinner {
+    height: 30px !important;
+    width: 30px !important;
+}
