@@ -16,7 +16,7 @@ if [ $LAST_COMMIT != $LAST_UPDATE ]; then
 	sudo systemctl restart nginx
 
 	pushd kumo/app
-	ng deploy --prod
+	ng build --prod
 	popd
 fi
 
