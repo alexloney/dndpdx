@@ -23,7 +23,7 @@ export class HomeComponent implements OnInit {
     this.displayLogin = true;
   }
 
-  public loginWithId(e) {
+  public loginWithId() {
     this.loading = true;
     this.ds.isIdValid(this.userid).subscribe((success) => {
       this.confirmationService.confirm({
