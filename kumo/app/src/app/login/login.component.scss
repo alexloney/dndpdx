@@ -1,0 +1,108 @@
+@import '../../variables.scss';
+
+.text {
+
+}
+
+.title {
+    text-align: center;
+    margin-top: 50px;
+    font-size: xx-large;
+}
+
+.description {
+    text-align: center;
+    margin-top: 25px;
+}
+
+.rpg-images {
+    text-align: center;
+}
+
+.img {
+    display: inline-block;
+    padding-left: 3px;
+    padding-right: 3px;
+}
+
+.main-btn-box {
+
+}
+
+.main-btn {
+    text-align: center;
+    margin-top: 200px;
+}
+
+.main-btn .ui-button {
+    height: 100px;
+    width: 200px;
+    font-size: larger;
+}
+
+.login-content {
+
+}
+
+.login-content .ui-inputtext {
+    width: 100%;
+}
+
+.btn-row {
+    text-align: right;
+}
+
+.parent {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.child {
+    width: 300px;
+    height: 105px;
+    // padding: 20px;
+
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    
+    margin: -70px 0 0 -170px;
+}
+
+.input-box {
+    background-color: #C589E8;
+    border-radius: 3px;
+    border: 1px solid;
+}
+
+.input-body {
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 25px;
+    padding-bottom: 5px;
+}
+
+.input-header {
+    background-color: #785589;
+    text-align: center;
+    font-size: larger;
+}
+
+.inline-input-field {
+    display: inline-block;
+    width: 80%;
+}
+
+.input-field {
+    width: 100%;
+}
+
+.inline-button {
+    display: inline-block;
+}
+
+.hidden-loading {
+    opacity: 0;
+    filter: alpha(opacity=0); /* For IE8 and earlier */
+}

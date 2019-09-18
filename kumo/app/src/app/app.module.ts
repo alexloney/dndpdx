@@ -6,7 +6,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { HomeComponent } from './home/home.component';
+import { LoginComponent } from './login/login.component';
 
 // PrimeNG Imports
 import { InputTextModule } from 'primeng/inputtext';
@@ -15,11 +15,13 @@ import { DialogModule } from 'primeng/dialog';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService } from 'primeng/api';
+import { HomeComponent } from './home/home.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    HomeComponent
+    LoginComponent,
+    HomeComponent,
   ],
   imports: [
     BrowserModule,

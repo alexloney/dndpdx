@@ -14,8 +14,22 @@ export class DatabaseService {
       'Content-Type': 'application/json'
     })
   };
+  private httpFormOptions = {
+    headers: new HttpHeaders({
+      'Content-Type': 'application/x-www-form-urlencoded'
+    })
+  };
+  private sessionId = '';
 
   constructor(private http: HttpClient) { }
+
+  public setSessionId(sessionid) {
+    this.sessionId = sessionid;
+  }
+
+  public register(id, name) {
+    return this.http.post(this.endpoint + 'players/register', 'id=' + id + '&name=' + name, this.httpFormOptions);
+  }
 
   private extractData(res: Response) {
     let body = res;
@@ -23,6 +37,6 @@ export class DatabaseService {
   }
 
   isIdValid(id): Observable<any> {
-    return this.http.get(this.endpoint + 'users/' + id).pipe(map(this.extractData));
+    return this.http.get(this.endpoint + 'players/' + id).pipe(map(this.extractData));
   }
 }
