@@ -1,0 +1,13 @@
+[Unit]
+Description=uWSGI instance to serve API
+After=network.target
+
+[Service]
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/dndpdx/kumo/api
+Environment="PATH=/home/pi/dndpdx/kumo/api/myprojectenv/bin"
+ExecStart=/home/pi/dndpdx/kumo/api/myprojectenv/bin/uwsgi --ini api.ini
+
+[Install]
+WantedBy=multi-user.target
