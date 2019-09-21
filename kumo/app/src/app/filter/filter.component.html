@@ -1,0 +1,36 @@
+<div class="filter-panel">
+    <div class="filter-row">
+        <div class="filter-label">
+            Game System
+        </div>
+        <div class="filter-options">
+            <p-dropdown [options]="gameSystems" [(ngModel)]="filters.gameSystem"></p-dropdown>
+        </div>
+    </div>
+    <div class="filter-row">
+        <div class="filter-label">
+            Dungeon Master
+        </div>
+        <div class="filter-options">
+            <p-dropdown [options]="dms" [(ngModel)]="filters.dm"></p-dropdown>
+        </div>
+    </div>
+    <div class="filter-row">
+        <div class="filter-label">
+            Day Range
+        </div>
+        <div class="filter-options">
+                <p-dropdown [options]="days" [(ngModel)]="filters.startDay"></p-dropdown>
+                <p-dropdown [options]="days" [(ngModel)]="filters.endDay"></p-dropdown>
+        </div>
+    </div>
+    <div class="filter-row">
+        <div class="filter-label">
+            Time Range
+        </div>
+        <div class="filter-options">
+            <p-dropdown [options]="times" [(ngModel)]="filters.startTime"></p-dropdown>
+            <p-dropdown [options]="times" [(ngModel)]="filters.endTime"></p-dropdown>
+        </div>
+    </div>
+</div>

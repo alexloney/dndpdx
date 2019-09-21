@@ -15,13 +15,21 @@ import { DialogModule } from 'primeng/dialog';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService } from 'primeng/api';
+import { DropdownModule } from 'primeng/dropdown';
 import { HomeComponent } from './home/home.component';
+import { GamelistComponent } from './gamelist/gamelist.component';
+import { GameComponent } from './game/game.component';
+import { FilterComponent } from './filter/filter.component';
+
 
 @NgModule({
   declarations: [
     AppComponent,
     LoginComponent,
     HomeComponent,
+    GamelistComponent,
+    GameComponent,
+    FilterComponent
   ],
   imports: [
     BrowserModule,
@@ -33,7 +41,8 @@ import { HomeComponent } from './home/home.component';
     DialogModule,
     BrowserAnimationsModule,
     ProgressSpinnerModule,
-    ConfirmDialogModule
+    ConfirmDialogModule,
+    DropdownModule
   ],
   providers: [
     ConfirmationService

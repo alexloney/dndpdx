@@ -23,12 +23,44 @@ export class DatabaseService {
 
   constructor(private http: HttpClient) { }
 
+  private getHeaders(type) {
+    let headers: any = {};
+
+    if (type === 'json') {
+      headers['Content-Type'] = 'application/json';
+    } else if (type === 'form') {
+      headers['Content-Type'] = 'application/x-www-form-urlencoded';
+    }
+
+    if (this.sessionId !== null && this.sessionId.length > 0) {
+      headers['Authorization'] = this.sessionId;
+    }
+
+    return { 'headers': new HttpHeaders(headers) };
+  }
+
   public setSessionId(sessionid) {
     this.sessionId = sessionid;
   }
 
   public register(id, name) {
-    return this.http.post(this.endpoint + 'players/register', 'id=' + id + '&name=' + name, this.httpFormOptions);
+    return this.http.post(this.endpoint + 'players/register', 'id=' + id + '&name=' + name, this.getHeaders('form'));
+  }
+
+  public getGameSystems() {
+    return this.http.get(this.endpoint + 'search/systems', this.getHeaders('json'));
+  }
+
+  public getDungeonMasters() {
+    return this.http.get(this.endpoint + 'search/dms', this.getHeaders('json'));
+  }
+
+  public getDays() {
+    return this.http.get(this.endpoint + 'search/days', this.getHeaders('json'));
+  }
+
+  public getTimes() {
+    return this.http.get(this.endpoint + 'search/times', this.getHeaders('json'));
   }
 
   private extractData(res: Response) {
@@ -37,6 +69,6 @@ export class DatabaseService {
   }
 
   isIdValid(id): Observable<any> {
-    return this.http.get(this.endpoint + 'players/' + id).pipe(map(this.extractData));
+    return this.http.get(this.endpoint + 'players/' + id, this.getHeaders('json')).pipe(map(this.extractData));
   }
 }

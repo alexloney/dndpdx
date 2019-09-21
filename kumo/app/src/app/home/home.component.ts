@@ -1,3 +1,6 @@
+import { Router } from '@angular/router';
+import { ConfirmationService } from 'primeng/api';
+import { DatabaseService } from './../database.service';
 import { Component, OnInit } from '@angular/core';
 
 @Component({
@@ -7,9 +10,21 @@ import { Component, OnInit } from '@angular/core';
 })
 export class HomeComponent implements OnInit {
 
-  constructor() { }
+  public filters = {};
+
+  constructor(private ds: DatabaseService,
+    private confirmationService: ConfirmationService,
+    private router: Router) { }
 
   ngOnInit() {
   }
 
+  public updateFilters(e) {
+    this.filters = e;
+  }
+
+  public logout() {
+    this.ds.setSessionId('');
+    this.router.navigate(['/']);
+  }
 }
