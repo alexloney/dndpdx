@@ -24,7 +24,13 @@ export class HomeComponent implements OnInit {
   }
 
   public logout() {
-    this.ds.setSessionId('');
-    this.router.navigate(['/']);
+    this.ds.logout().subscribe(
+      () => {},
+      () => {},
+      () => {
+        this.ds.setSessionId('');
+        this.router.navigate(['/']);
+      }
+    );
   }
 }

@@ -47,6 +47,10 @@ export class DatabaseService {
     return this.http.post(this.endpoint + 'players/register', 'id=' + id + '&name=' + name, this.getHeaders('form'));
   }
 
+  public logout() {
+    return this.http.post(this.endpoint + 'logout', this.getHeaders('json'));
+  }
+
   public getGameSystems() {
     return this.http.get(this.endpoint + 'search/systems', this.getHeaders('json'));
   }

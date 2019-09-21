@@ -47,8 +47,20 @@ export class FilterComponent implements OnInit {
 
   private populateDropdowns() {
     this.db.getGameSystems().subscribe(
-      (success) => {
-        console.log(success);
+      (success: any) => {
+        if (success.hasOwnProperty('errorMsg')) {
+          console.error(success);
+          // TODO: Display error message
+
+          return;
+        }
+
+        this.gameSystems = [
+          { label: 'All Systems', value: { id: 0, name: 'All Systems'}}
+        ];
+        success.results.forEach((result) => {
+          this.gameSystems.push({label: result.name, value: { id: result.id, name: result.name }});
+        });
       },
       (failure) => {
         console.error(failure);
@@ -59,8 +71,20 @@ export class FilterComponent implements OnInit {
     );
     
     this.db.getDungeonMasters().subscribe(
-      (success) => {
-        console.log(success);
+      (success: any) => {
+        if (success.hasOwnProperty('errorMsg')) {
+          console.error(success);
+          // TODO: Display error message
+
+          return;
+        }
+
+        this.dms = [
+          { label: 'All DMs', value: { id: 0, name: 'All DMs'}}
+        ];
+        success.results.forEach((result) => {
+          this.dms.push({label: result.name, value: { id: result.id, name: result.name }});
+        });
       },
       (failure) => {
         console.error(failure);
@@ -95,8 +119,20 @@ export class FilterComponent implements OnInit {
     );
     
     this.db.getTimes().subscribe(
-      (success) => {
-        console.log(success);
+      (success: any) => {
+        if (success.hasOwnProperty('errorMsg')) {
+          console.error(success);
+          // TODO: Display error message
+
+          return;
+        }
+
+        this.times = [
+          { label: 'All Times', value: { id: 0, name: 'All Times'}}
+        ];
+        success.results.forEach((result) => {
+          this.times.push({label: result.name, value: { id: result.id, name: result.name }});
+        });
       },
       (failure) => {
         console.error(failure);
