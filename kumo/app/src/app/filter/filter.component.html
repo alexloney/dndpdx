@@ -4,7 +4,7 @@
             Game System
         </div>
         <div class="filter-options">
-            <p-dropdown [options]="gameSystems" [(ngModel)]="filters.gameSystem"></p-dropdown>
+            <p-dropdown [options]="gameSystems" [(ngModel)]="gameSystem"></p-dropdown>
         </div>
     </div>
     <div class="filter-row">
@@ -12,7 +12,7 @@
             Dungeon Master
         </div>
         <div class="filter-options">
-            <p-dropdown [options]="dms" [(ngModel)]="filters.dm"></p-dropdown>
+            <p-dropdown [options]="dms" [(ngModel)]="dm"></p-dropdown>
         </div>
     </div>
     <div class="filter-row">
@@ -20,8 +20,8 @@
             Day Range
         </div>
         <div class="filter-options">
-                <p-dropdown [options]="days" [(ngModel)]="filters.startDay"></p-dropdown>
-                <p-dropdown [options]="days" [(ngModel)]="filters.endDay"></p-dropdown>
+                <p-dropdown [options]="days" [(ngModel)]="startDay"></p-dropdown>
+                <p-dropdown [options]="days" [(ngModel)]="endDay"></p-dropdown>
         </div>
     </div>
     <div class="filter-row">
@@ -29,8 +29,8 @@
             Time Range
         </div>
         <div class="filter-options">
-            <p-dropdown [options]="times" [(ngModel)]="filters.startTime"></p-dropdown>
-            <p-dropdown [options]="times" [(ngModel)]="filters.endTime"></p-dropdown>
+            <p-dropdown [options]="times" [(ngModel)]="startTime"></p-dropdown>
+            <p-dropdown [options]="times" [(ngModel)]="endTime"></p-dropdown>
         </div>
     </div>
 </div>

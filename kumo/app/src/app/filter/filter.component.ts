@@ -1,6 +1,6 @@
 import { DatabaseService } from './../database.service';
 import { Component, OnInit, Input, Output } from '@angular/core';
-import { EventEmitter } from '@angular/core';
+import { DoCheck, EventEmitter } from '@angular/core';
 
 @Component({
   selector: 'app-filter',
@@ -11,6 +11,54 @@ export class FilterComponent implements OnInit {
 
   @Input() filters: any = {};
   @Output() filtersChange = new EventEmitter();
+
+  get gameSystem() {
+    return this.filters.gameSystem;
+  }
+  set gameSystem(value) {
+    this.filters.gameSystem = value;
+    this.filtersChange.emit(this.filters);
+  }
+
+  get dm() {
+    return this.filters.dm;
+  }
+  set dm(value) {
+    this.filters.dm = value;
+    this.filtersChange.emit(this.filters);
+  }
+
+  get startDay() {
+    return this.filters.startDay;
+  }
+  set startDay(value) {
+    this.filters.startDay = value;
+    this.filtersChange.emit(this.filters);
+  }
+
+  get endDay() {
+    return this.filters.endDay;
+  }
+  set endDay(value) {
+    this.filters.endDay = value;
+    this.filtersChange.emit(this.filters);
+  }
+
+  get startTime() {
+    return this.filters.startTime;
+  }
+  set startTime(value) {
+    this.filters.startTime = value;
+    this.filtersChange.emit(this.filters);
+  }
+
+  get endTime() {
+    return this.filters.endTime;
+  }
+  set endTime(value) {
+    this.filters.endTime = value;
+    this.filtersChange.emit(this.filters);
+  }
 
   public gameSystems = [
     { label: 'All Systems', value: { id: 0, name: 'All Systems'}}
@@ -29,16 +77,14 @@ export class FilterComponent implements OnInit {
   ];
 
   constructor(private db: DatabaseService) {
-    
     setTimeout(() => {
-      this.filters.gameSystem = '';
-      this.filters.dm = '';
-      this.filters.startDay = '';
-      this.filters.endDay = '';
-      this.filters.startTime = '';
-      this.filters.endTime = '';
-      this.filtersChange.emit(this.filters);
-    }, 3000);
+      this.gameSystem = this.gameSystems[0].value;
+      this.dm = this.dms[0].value;
+      this.startDay = this.days[0].value;
+      this.endDay = this.days[0].value;
+      this.startTime = this.times[0].value;
+      this.endTime = this.times[0].value;
+    });
   }
 
   ngOnInit() {
