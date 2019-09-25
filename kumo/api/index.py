@@ -32,6 +32,7 @@ def run_setup():
     query = conn.execute("DROP TABLE IF EXISTS GameSystems")
     query = conn.execute("DROP TABLE IF EXISTS DMs")
     query = conn.execute("DROP TABLE IF EXISTS Times")
+    query = conn.execute("DROP TABLE IF EXISTS Games")
     query = conn.execute("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'Players'")
     result = query.fetchone()
     if result == None:
@@ -51,41 +52,43 @@ def run_setup():
         query = conn.execute("""
             CREATE TABLE Days (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name varchar
+                name varchar,
+                sort INTEGER
             )
         """)
         query = conn.execute("""
-            INSERT INTO Days (name) VALUES ('Friday')
+            INSERT INTO Days (name, sort) VALUES ('Friday', 1)
         """)
         query = conn.execute("""
-            INSERT INTO Days (name) VALUES ('Saturday')
+            INSERT INTO Days (name, sort) VALUES ('Saturday', 2)
         """)
         query = conn.execute("""
-            INSERT INTO Days (name) VALUES ('Sunday')
+            INSERT INTO Days (name, sort) VALUES ('Sunday', 3)
         """)
         query = conn.execute("""
             CREATE TABLE GameSystems (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name varchar
+                name varchar, 
+                sort INTEGER
             )
         """)
         query = conn.execute("""
-            INSERT INTO GameSystems (name) VALUES ('D&D')
+            INSERT INTO GameSystems (name, sort) VALUES ('D&D', 1)
         """)
         query = conn.execute("""
-            INSERT INTO GameSystems (name) VALUES ('Pathfinder')
+            INSERT INTO GameSystems (name, sort) VALUES ('Pathfinder', 2)
         """)
         query = conn.execute("""
-            INSERT INTO GameSystems (name) VALUES ('Starfinder')
+            INSERT INTO GameSystems (name, sort) VALUES ('Starfinder', 3)
         """)
         query = conn.execute("""
-            INSERT INTO GameSystems (name) VALUES ('Shadowrun')
+            INSERT INTO GameSystems (name, sort) VALUES ('Shadowrun', 4)
         """)
         query = conn.execute("""
-            INSERT INTO GameSystems (name) VALUES ('DCC')
+            INSERT INTO GameSystems (name, sort) VALUES ('DCC', 5)
         """)
         query = conn.execute("""
-            INSERT INTO GameSystems (name) VALUES ('MLP')
+            INSERT INTO GameSystems (name, sort) VALUES ('MLP', 6)
         """)
 
         query = conn.execute("""
@@ -103,65 +106,80 @@ def run_setup():
         query = conn.execute("""
             CREATE TABLE Times (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name varchar
+                name varchar,
+                sort INTEGER
             )
         """)
         conn.execute("""
-            INSERT INTO Times (name) VALUES ('9:00 AM');
+            INSERT INTO Times (name, sort) VALUES ('9:00 AM', 1);
         """)
         conn.execute("""
-            INSERT INTO Times (name) VALUES ('10:00 AM');
+            INSERT INTO Times (name, sort) VALUES ('10:00 AM', 2);
         """)
         conn.execute("""
-            INSERT INTO Times (name) VALUES ('11:00 AM');
+            INSERT INTO Times (name, sort) VALUES ('11:00 AM', 3);
         """)
         conn.execute("""
-            INSERT INTO Times (name) VALUES ('12:00 PM');
+            INSERT INTO Times (name, sort) VALUES ('12:00 PM', 4);
         """)
         conn.execute("""
-            INSERT INTO Times (name) VALUES ('1:00 PM');
+            INSERT INTO Times (name, sort) VALUES ('1:00 PM', 5);
         """)
         conn.execute("""
-            INSERT INTO Times (name) VALUES ('2:00 PM');
+            INSERT INTO Times (name, sort) VALUES ('2:00 PM', 6);
         """)
         conn.execute("""
-            INSERT INTO Times (name) VALUES ('3:00 PM');
+            INSERT INTO Times (name, sort) VALUES ('3:00 PM', 7);
         """)
         conn.execute("""
-            INSERT INTO Times (name) VALUES ('4:00 PM');
+            INSERT INTO Times (name, sort) VALUES ('4:00 PM', 8);
         """)
         conn.execute("""
-            INSERT INTO Times (name) VALUES ('5:00 PM');
+            INSERT INTO Times (name, sort) VALUES ('5:00 PM', 9);
         """)
         conn.execute("""
-            INSERT INTO Times (name) VALUES ('6:00 PM');
+            INSERT INTO Times (name, sort) VALUES ('6:00 PM', 10);
         """)
         conn.execute("""
-            INSERT INTO Times (name) VALUES ('7:00 PM');
+            INSERT INTO Times (name, sort) VALUES ('7:00 PM', 11);
         """)
         conn.execute("""
-            INSERT INTO Times (name) VALUES ('8:00 PM');
+            INSERT INTO Times (name, sort) VALUES ('8:00 PM', 12);
         """)
         conn.execute("""
-            INSERT INTO Times (name) VALUES ('9:00 PM');
+            INSERT INTO Times (name, sort) VALUES ('9:00 PM', 13);
         """)
         conn.execute("""
-            INSERT INTO Times (name) VALUES ('10:00 PM');
+            INSERT INTO Times (name, sort) VALUES ('10:00 PM', 14);
         """)
         conn.execute("""
-            INSERT INTO Times (name) VALUES ('11:00 PM');
+            INSERT INTO Times (name, sort) VALUES ('11:00 PM', 15);
         """)
         conn.execute("""
-            INSERT INTO Times (name) VALUES ('12:00 AM');
+            INSERT INTO Times (name, sort) VALUES ('12:00 AM', 16);
         """)
         conn.execute("""
-            INSERT INTO Times (name) VALUES ('1:00 AM');
+            INSERT INTO Times (name, sort) VALUES ('1:00 AM', 17);
         """)
         conn.execute("""
-            INSERT INTO Times (name) VALUES ('2:00 AM');
+            INSERT INTO Times (name, sort) VALUES ('2:00 AM', 18);
         """)
         conn.execute("""
-            INSERT INTO Times (name) VALUES ('3:00 AM');
+            INSERT INTO Times (name, sort) VALUES ('3:00 AM', 19);
+        """)
+        conn.execute("""
+            CREATE TABLE Games (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name VARCHAR,
+                description VARCHAR,
+                systemid INTEGER,
+                dayid INTEGER,
+                timeid INTEGER,
+                dmid INTEGER
+            )
+        """)
+        conn.execute("""
+            INSERT INTO Games (name, description, systemid, dayid, timeid, dmid) VALUES ('name', 'description', 1, 1, 1, 1)
         """)
         
     
@@ -351,6 +369,66 @@ def search_times():
     rows = query.fetchall()
     for row in rows:
         response_obj['results'].append({'id': row.id, 'name': row.name})
+    
+    response_str = json.dumps(response_obj)
+    return get_standard_response(response_str)
+
+@app.route('/games/all', methods=['GET'])
+def get_all_games():
+    session_id = request.headers.get('Authorization')
+    print(session_id)
+
+    conn = db_connect.connect()
+    query = conn.execute("""
+        SELECT a.id,
+               a.name,
+               a.description,
+               b.name AS system,
+               b.id AS systemid,
+               c.name AS day,
+               c.id AS dayid,
+               d.name AS time,
+               d.id AS timeid,
+               e.name AS dm,
+               e.id AS dmid
+          FROM Games a 
+          JOIN GameSystems b 
+            ON a.systemid = b.id
+          JOIN Days c
+            ON a.dayid = c.id
+          JOIN Times d
+            ON a.timeid = d.id
+          JOIN DMs e
+            ON a.dmid = e.id
+         ORDER BY c.sort, d.sort, b.sort
+    """)
+
+    response_obj = {
+        'results': [
+
+        ]
+    }
+    rows = query.fetchall()
+    for row in rows:
+        response_obj['results'].append({'id': row.id,
+            'name': row.name,
+            'description': row.description,
+            'system': {
+                'id': row.systemid,
+                'name': row.system
+            },
+            'day': {
+                'id': row.dayid,
+                'name': row.day
+            },
+            'time': {
+                'id': row.timeid,
+                'name': row.time
+            },
+            'dm': {
+                'id': row.dmid,
+                'name': row.dm
+            }})
     
     response_str = json.dumps(response_obj)
     return get_standard_response(response_str)

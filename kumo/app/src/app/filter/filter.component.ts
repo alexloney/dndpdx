@@ -1,5 +1,5 @@
 import { DatabaseService } from './../database.service';
-import { Component, OnInit, Input, Output } from '@angular/core';
+import { Component, OnInit, Input, Output, ChangeDetectorRef } from '@angular/core';
 import { DoCheck, EventEmitter } from '@angular/core';
 
 @Component({
@@ -9,54 +9,61 @@ import { DoCheck, EventEmitter } from '@angular/core';
 })
 export class FilterComponent implements OnInit {
 
-  @Input() filters: any = {};
+  public _filters: any = {};
+  @Input() filters: string;
   @Output() filtersChange = new EventEmitter();
 
   get gameSystem() {
-    return this.filters.gameSystem;
+    return this._filters.gameSystem;
   }
   set gameSystem(value) {
-    this.filters.gameSystem = value;
+    this._filters.gameSystem = value;
+    this.filters = JSON.stringify(this._filters);
     this.filtersChange.emit(this.filters);
   }
 
   get dm() {
-    return this.filters.dm;
+    return this._filters.dm;
   }
   set dm(value) {
-    this.filters.dm = value;
+    this._filters.dm = value;
+    this.filters = JSON.stringify(this._filters);
     this.filtersChange.emit(this.filters);
   }
 
   get startDay() {
-    return this.filters.startDay;
+    return this._filters.startDay;
   }
   set startDay(value) {
-    this.filters.startDay = value;
+    this._filters.startDay = value;
+    this.filters = JSON.stringify(this._filters);
     this.filtersChange.emit(this.filters);
   }
 
   get endDay() {
-    return this.filters.endDay;
+    return this._filters.endDay;
   }
   set endDay(value) {
-    this.filters.endDay = value;
+    this._filters.endDay = value;
+    this.filters = JSON.stringify(this._filters);
     this.filtersChange.emit(this.filters);
   }
 
   get startTime() {
-    return this.filters.startTime;
+    return this._filters.startTime;
   }
   set startTime(value) {
-    this.filters.startTime = value;
+    this._filters.startTime = value;
+    this.filters = JSON.stringify(this._filters);
     this.filtersChange.emit(this.filters);
   }
 
   get endTime() {
-    return this.filters.endTime;
+    return this._filters.endTime;
   }
   set endTime(value) {
-    this.filters.endTime = value;
+    this._filters.endTime = value;
+    this.filters = JSON.stringify(this._filters);
     this.filtersChange.emit(this.filters);
   }
 
@@ -77,6 +84,9 @@ export class FilterComponent implements OnInit {
   ];
 
   constructor(private db: DatabaseService) {
+    // setTimeout(() => {
+    //   console.log(this.filters);
+    // }, 5000);
     setTimeout(() => {
       this.gameSystem = this.gameSystems[0].value;
       this.dm = this.dms[0].value;

@@ -10,17 +10,17 @@ import { Component, OnInit } from '@angular/core';
 })
 export class HomeComponent implements OnInit {
 
-  public filters = {};
+  public filters: string = '';
 
   constructor(private ds: DatabaseService,
     private confirmationService: ConfirmationService,
-    private router: Router) { }
+    private router: Router) {
+      // setTimeout(() => {
+      //   console.log(this.filters);
+      // }, 10000);
+    }
 
   ngOnInit() {
-  }
-
-  public updateFilters(e) {
-    this.filters = e;
   }
 
   public logout() {
@@ -32,5 +32,9 @@ export class HomeComponent implements OnInit {
         this.router.navigate(['/']);
       }
     );
+  }
+
+  public updateFilters(f) {
+    console.log(f);
   }
 }

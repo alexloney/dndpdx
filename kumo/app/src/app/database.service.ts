@@ -67,6 +67,10 @@ export class DatabaseService {
     return this.http.get(this.endpoint + 'search/times', this.getHeaders('json'));
   }
 
+  public getAllGames() {
+    return this.http.get(this.endpoint + 'games/all', this.getHeaders('json'));
+  }
+
   private extractData(res: Response) {
     let body = res;
     return body || { };
