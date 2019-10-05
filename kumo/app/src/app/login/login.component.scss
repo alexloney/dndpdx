@@ -41,7 +41,7 @@
 }
 
 .login-content {
-
+    max-width: 25em;
 }
 
 .login-content .ui-inputtext {
@@ -105,4 +105,12 @@
 .hidden-loading {
     opacity: 0;
     filter: alpha(opacity=0); /* For IE8 and earlier */
+}
+
+.login-input {
+    max-width: 25em;
+}
+
+.ui-float-label {
+    max-width: 25em;
 }

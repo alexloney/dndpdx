@@ -48,7 +48,7 @@ export class DatabaseService {
   }
 
   public logout() {
-    return this.http.post(this.endpoint + 'logout', this.getHeaders('json'));
+    return this.http.post(this.endpoint + 'logout', null, this.getHeaders('json'));
   }
 
   public getGameSystems() {
@@ -69,6 +69,10 @@ export class DatabaseService {
 
   public getAllGames() {
     return this.http.get(this.endpoint + 'games/all', this.getHeaders('json'));
+  }
+
+  public registerForGame(id) {
+    return this.http.post(this.endpoint + 'games/register/' + id, null, this.getHeaders('json'))
   }
 
   private extractData(res: Response) {

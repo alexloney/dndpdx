@@ -4,18 +4,18 @@
     </p-footer>
 </p-confirmDialog>
 
-<p-dialog header="Login" [(visible)]="displayLogin">
+<p-dialog header="Login" [(visible)]="displayLogin" resizable="false">
     <div class="login-content">
         <div class="ui-g">
             <div class="ui-g-12">
                 <span class="ui-float-label">
-                    <input pInputText id="float-input-id" type="text" size="30" [(ngModel)]="userid"> 
+                    <input pInputText id="float-input-id" class="login-input" type="text" size="30" [(ngModel)]="userid"> 
                     <label for="float-input-id">Kumoricon ID</label>
                 </span>
             </div>
             <div class="ui-g-12" *ngIf="displayName">
                 <span class="ui-float-label">
-                    <input pInputText id="float-input-name" type="text" [(ngModel)]="name"> 
+                    <input pInputText id="float-input-name" class="login-input" type="text" size="30" [(ngModel)]="name"> 
                     <label for="float-input-name">Your Name</label>
                 </span>
             </div>

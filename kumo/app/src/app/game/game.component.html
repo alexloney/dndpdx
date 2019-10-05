@@ -1,8 +1,88 @@
-<div>
-    <div>{{ game.name }}</div>
-    <div>{{ game.description }}</div>
-    <div>{{ game.system.name }}</div>
-    <div>{{ game.day.name }}</div>
-    <div>{{ game.time.name }}</div>
-    <div>{{ game.dm.name }}</div>
+<p-confirmDialog #cd appendTo="body">
+    <p-footer>
+        <button type="button" pButton icon="pi pi-check" label="OK" (click)="cd.accept()"></button>
+    </p-footer>
+</p-confirmDialog>
+
+<p-dialog header="{{game.name}}" modal="true" appendTo="body" dismissableMask="true" [(visible)]="displayDetails" resizable="false">
+    <div class="ui-g">
+        <div class="ui-g-12">
+            <button pButton type="button" label="Register!" (click)="register()"></button>
+        </div>
+        <div class="ui-g-1 line-label">
+            Name:
+        </div>
+        <div class="ui-g-11">
+            {{ game.name }}
+        </div>
+        <div class="ui-g-1 line-label">
+            DM: 
+        </div>
+        <div class="ui-g-11">
+            {{ game.dm.name }}
+        </div>
+        <div class="ui-g-1 line-label">
+            Game System:
+        </div>
+        <div class="ui-g-11">
+            {{ game.system.name }}
+        </div>
+        <div class="ui-g-1 line-label">
+            Day:
+        </div>
+        <div class="ui-g-11">
+            {{ game.day.name }}
+        </div>
+        <div class="ui-g-1 line-label">
+            Time:
+        </div>
+        <div class="ui-g-11">
+            {{ game.time.name }}
+        </div>
+        <div class="ui-g-1 line-label">
+            Description:
+        </div>
+        <div class="ui-g-11">
+            {{ game.description }}
+        </div>
+        <div class="ui-g-1 line-label">
+            Registered:
+        </div>
+        <div class="ui-g-11">
+            {{ game.players.length > game.seats ? game.seats : game.players.length }} / {{ game.seats }}
+        </div>
+        <div class="ui-g-12" *ngIf="game.players.length > 0">
+            <div *ngFor="let player of game.players; let i = index">
+                <span *ngIf="i < game.seats">
+                    {{ i+1 }}. {{ player.name }}
+                </span>
+            </div>
+        </div>
+        <div class="ui-g-1 line-label">
+            Waitlisted:
+        </div>
+        <div class="ui-g-11">
+            {{ game.players.length > game.seats ? game.players.length - game.seats : 0 }} / {{ game.waitlist }}
+        </div>
+        <div class="ui-g-12" *ngIf="game.players.length > game.seats">
+            <div *ngFor="let player of game.players; let i = index">
+                <span *ngIf="i >= game.seats">
+                    {{ i - game.seats + 1 }}. {{ player.name }}
+                </span>
+            </div>
+        </div>
+        <div class="ui-g-12">
+            <button pButton type="button" label="Register!" (click)="register()"></button>
+        </div>
+    </div>
+</p-dialog>
+
+<div class="ui-g game-block" (click)="displayDetails = !displayDetails">
+    <div class="ui-g-12">{{ game.name }}</div>
+    <div class="ui-g-2">{{ game.dm.name }}</div>
+    <div class="ui-g-2">{{ game.system.name }}</div>
+    <div class="ui-g-2">{{ game.day.name }} @ {{ game.time.name }}</div>
+    <div class="ui-g-2">Registered: {{ game.players.length > game.seats ? game.seats : game.players.length }} / {{ game.seats }}</div>
+    <div class="ui-g-2">Waitlist: {{ game.players.length > game.seats ? game.players.length - game.seats : 0 }} / {{ game.waitlist }}</div>
+    <div class="ui-g-12">{{ game.description }}</div>
 </div>

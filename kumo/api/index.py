@@ -33,15 +33,19 @@ def run_setup():
     query = conn.execute("DROP TABLE IF EXISTS DMs")
     query = conn.execute("DROP TABLE IF EXISTS Times")
     query = conn.execute("DROP TABLE IF EXISTS Games")
+    query = conn.execute("DROP TABLE IF EXISTS GameRegister")
     query = conn.execute("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'Players'")
     result = query.fetchone()
     if result == None:
-        query = conn.execute("""
+        conn.execute("""
             CREATE TABLE Players (
                 kumoId Int,
                 name varchar
             )""")
-        query = conn.execute("""
+        conn.execute("""
+            INSERT INTO Players (kumoId, name) VALUES (1, 'Alex')
+        """)
+        conn.execute("""
             CREATE TABLE UserSessions (
                 kumoId Int,
                 session varchar,
@@ -49,49 +53,49 @@ def run_setup():
                 admin int
             )
         """)
-        query = conn.execute("""
+        conn.execute("""
             CREATE TABLE Days (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name varchar,
                 sort INTEGER
             )
         """)
-        query = conn.execute("""
+        conn.execute("""
             INSERT INTO Days (name, sort) VALUES ('Friday', 1)
         """)
-        query = conn.execute("""
+        conn.execute("""
             INSERT INTO Days (name, sort) VALUES ('Saturday', 2)
         """)
-        query = conn.execute("""
+        conn.execute("""
             INSERT INTO Days (name, sort) VALUES ('Sunday', 3)
         """)
-        query = conn.execute("""
+        conn.execute("""
             CREATE TABLE GameSystems (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name varchar, 
                 sort INTEGER
             )
         """)
-        query = conn.execute("""
+        conn.execute("""
             INSERT INTO GameSystems (name, sort) VALUES ('D&D', 1)
         """)
-        query = conn.execute("""
+        conn.execute("""
             INSERT INTO GameSystems (name, sort) VALUES ('Pathfinder', 2)
         """)
-        query = conn.execute("""
+        conn.execute("""
             INSERT INTO GameSystems (name, sort) VALUES ('Starfinder', 3)
         """)
-        query = conn.execute("""
+        conn.execute("""
             INSERT INTO GameSystems (name, sort) VALUES ('Shadowrun', 4)
         """)
-        query = conn.execute("""
+        conn.execute("""
             INSERT INTO GameSystems (name, sort) VALUES ('DCC', 5)
         """)
-        query = conn.execute("""
+        conn.execute("""
             INSERT INTO GameSystems (name, sort) VALUES ('MLP', 6)
         """)
 
-        query = conn.execute("""
+        conn.execute("""
             CREATE TABLE DMs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name varchar
@@ -103,7 +107,7 @@ def run_setup():
         conn.execute("""
             INSERT INTO DMs (name) VALUES ('Peter');
         """)
-        query = conn.execute("""
+        conn.execute("""
             CREATE TABLE Times (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name varchar,
@@ -175,11 +179,44 @@ def run_setup():
                 systemid INTEGER,
                 dayid INTEGER,
                 timeid INTEGER,
-                dmid INTEGER
+                dmid INTEGER,
+                seats INTEGER,
+                waitlist INTEGER
             )
         """)
         conn.execute("""
-            INSERT INTO Games (name, description, systemid, dayid, timeid, dmid) VALUES ('name', 'description', 1, 1, 1, 1)
+            INSERT INTO Games (name, description, systemid, dayid, timeid, dmid, seats, waitlist) VALUES ('name', 'description', 1, 1, 1, 1, 7, 4)
+        """)
+        conn.execute("""
+            CREATE TABLE GameRegister (
+                kumoId INTEGER,
+                gameId INTEGER,
+                registered DATETIME
+            )
+        """)
+        conn.execute("""
+            INSERT INTO GameRegister (kumoId, gameId, registered) VALUES (1, 1, date('now'))
+        """)
+        conn.execute("""
+            INSERT INTO GameRegister (kumoId, gameId, registered) VALUES (1, 1, date('now'))
+        """)
+        conn.execute("""
+            INSERT INTO GameRegister (kumoId, gameId, registered) VALUES (1, 1, date('now'))
+        """)
+        conn.execute("""
+            INSERT INTO GameRegister (kumoId, gameId, registered) VALUES (1, 1, date('now'))
+        """)
+        conn.execute("""
+            INSERT INTO GameRegister (kumoId, gameId, registered) VALUES (1, 1, date('now'))
+        """)
+        conn.execute("""
+            INSERT INTO GameRegister (kumoId, gameId, registered) VALUES (1, 1, date('now'))
+        """)
+        conn.execute("""
+            INSERT INTO GameRegister (kumoId, gameId, registered) VALUES (1, 1, date('now'))
+        """)
+        conn.execute("""
+            INSERT INTO GameRegister (kumoId, gameId, registered) VALUES (1, 1, date('now'))
         """)
         
     
@@ -225,6 +262,19 @@ def validate_session(session_id):
     if result == None:
         return False
     return True
+
+def get_player_id(session_id):
+    if session_id == None:
+        return False
+    
+    conn = db_connect.connect()
+    query = conn.execute('SELECT kumoId FROM UserSessions WHERE session = :s', s=session_id)
+
+    result = query.fetchone()
+    if result == None:
+        return False
+    
+    return result['kumoId']
 
 @app.route('/players/<kumo_id>')
 def get_player(kumo_id):
@@ -383,6 +433,8 @@ def get_all_games():
         SELECT a.id,
                a.name,
                a.description,
+               a.seats,
+               a.waitlist,
                b.name AS system,
                b.id AS systemid,
                c.name AS day,
@@ -410,9 +462,11 @@ def get_all_games():
     }
     rows = query.fetchall()
     for row in rows:
-        response_obj['results'].append({'id': row.id,
+        obj = {'id': row.id,
             'name': row.name,
             'description': row.description,
+            'seats': row.seats,
+            'waitlist': row.waitlist,
             'system': {
                 'id': row.systemid,
                 'name': row.system
@@ -428,10 +482,72 @@ def get_all_games():
             'dm': {
                 'id': row.dmid,
                 'name': row.dm
-            }})
+            },
+            'players': []}
+        query = conn.execute("""
+            SELECT a.kumoId, b.name
+              FROM GameRegister a
+              JOIN Players b
+                ON a.kumoId = b.kumoId
+             WHERE gameId = :g
+            ORDER BY registered
+        """, g=row.id)
+        players = query.fetchall()
+        for player in players:
+            player = {
+                'id': player.kumoId,
+                'name': player.name
+            }
+            obj['players'].append(player)
+
+        response_obj['results'].append(obj)
     
     response_str = json.dumps(response_obj)
     return get_standard_response(response_str)
+
+@app.route('/games/register/<id>', methods=['POST'])
+def registerForGame(id):
+    session_id = request.headers.get('Authorization')
+    print(session_id)
+
+    if not validate_session(session_id):
+        response_str = json.dumps({
+            'errorMsg': 'Invalid session, please log in first.'
+        })
+        return get_standard_response(response_str)
+
+    player_id = get_player_id(session_id)
+    if player_id == False:
+        response_str = json.dumps({
+            'errorMsg': 'Invalid session, please log in first.'
+        })
+        return get_standard_response(response_str)
+    
+    conn = db_connect.connect()
+    query = conn.execute('SELECT COUNT(*) AS cnt FROM GameRegister WHERE kumoId = :k AND gameId = :g', k=player_id, g=id)
+
+    result = query.fetchone()
+    if result == None:
+        response_str = json.dumps({
+            'errorMsg': 'Unable to determine registration'
+        })
+        return get_standard_response(response_str)
+    
+    if int(result['cnt']) != 0:
+        response_str = json.dumps({
+            'errorMsg': 'User already registered'
+        })
+        return get_standard_response(response_str)
+
+    query = conn.execute("INSERT INTO GameRegister (kumoId, gameId, registered) VALUES (:k, :g, date('now'))", k=player_id, g=id)
+
+    response_str = json.dumps({
+        'success': True
+    })
+    return get_standard_response(response_str)
+
+
+
 
 @app.route('/logout', methods=['POST'])
 def logout():
