@@ -75,6 +75,18 @@ export class DatabaseService {
     return this.http.post(this.endpoint + 'games/register/' + id, null, this.getHeaders('json'))
   }
 
+  public getGameById(id) {
+    return this.http.get(this.endpoint + 'games/id/' + id, this.getHeaders('json'));
+  }
+
+  public isRegistered(id) {
+    return this.http.get(this.endpoint + 'games/registered/' + id, this.getHeaders('json'));
+  }
+
+  public deRegisterForGame(id) {
+    return this.http.post(this.endpoint + 'games/deregister/' + id, null, this.getHeaders('json'));
+  }
+
   private extractData(res: Response) {
     let body = res;
     return body || { };

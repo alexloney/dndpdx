@@ -1,6 +1,6 @@
 <p-confirmDialog #cd header="Error" icon="pi pi-exclamation-triangle" appendTo="body">
     <p-footer>
-        <button type="button" pButton icon="pi pi-check" label="OK" (click)="cd.accept()"></button>
+        <button type="button" pButton icon="pi pi-check" label="OK" (click)="cd.accept()" class="ui-button-secondary"></button>
     </p-footer>
 </p-confirmDialog>
 
@@ -22,10 +22,10 @@
             <div class="ui-g-12 btn-row">
                 <p-progressSpinner [ngClass]="{'hidden-loading': !loading}"></p-progressSpinner>
                 <span *ngIf="!displayName">
-                    <button pButton type="button" label="Login!" (click)="loginWithId()"></button>
+                    <button pButton type="button" label="Login!" (click)="loginWithId()" class="ui-button-secondary"></button>
                 </span>
                 <span *ngIf="displayName">
-                    <button pButton type="button" label="Register!" (click)="register()"></button>
+                    <button pButton type="button" label="Register!" (click)="register()" class="ui-button-secondary"></button>
                 </span>
             </div>
         </div>
@@ -66,6 +66,6 @@
 
 <div class="main-btn-box">
     <div class="main-btn">
-        <button pButton type="button" label="Get Started!" (click)="showLogin()"></button>
+        <button pButton type="button" label="Get Started!" (click)="showLogin()" class="ui-button-secondary"></button>
     </div>
 </div>

@@ -9,11 +9,16 @@ html {
 // PrimeNG Buttons
 // **********************************************
 
-.ui-button {
+.ui-button-secondary {
     background-color: $color1 !important;
     border-color: $color2 !important;
+    color: white !important;
 }
 
+.ui-button-danger {
+    background-color: $color4 !important;
+    border-color: $color3 !important;
+}
 
 // **********************************************
 // PrimeNG Dialogs

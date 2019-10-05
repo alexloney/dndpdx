@@ -113,4 +113,15 @@ export class GamelistComponent implements OnInit, OnChanges {
     }
   }
 
+  public refreshGame(game) {
+    console.log('Refreshing ' + game.id);
+
+    for(let i = 0; i < this.games.length; ++i) {
+      if (this.games[i].id === game.id) {
+        Object.assign(this.games[i], game);
+        break;
+      }
+    }
+  }
+
 }

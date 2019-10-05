@@ -1,13 +1,14 @@
 <p-confirmDialog #cd appendTo="body">
     <p-footer>
-        <button type="button" pButton icon="pi pi-check" label="OK" (click)="cd.accept()"></button>
+        <button type="button" pButton icon="pi pi-check" label="OK" (click)="cd.accept()" class="ui-button-secondary"></button>
     </p-footer>
 </p-confirmDialog>
 
 <p-dialog header="{{game.name}}" modal="true" appendTo="body" dismissableMask="true" [(visible)]="displayDetails" resizable="false">
     <div class="ui-g">
         <div class="ui-g-12">
-            <button pButton type="button" label="Register!" (click)="register()"></button>
+            <button pButton *ngIf="!registered" type="button" label="Register!" (click)="register()" class="ui-button-secondary"></button>
+            <button pButton *ngIf="registered" type="button" label="Remove Registration!" (click)="deRegister()" class="ui-button-danger"></button>
         </div>
         <div class="ui-g-1 line-label">
             Name:
@@ -72,17 +73,23 @@
             </div>
         </div>
         <div class="ui-g-12">
-            <button pButton type="button" label="Register!" (click)="register()"></button>
+                <button pButton *ngIf="!registered" type="button" label="Register!" (click)="register()" class="ui-button-secondary"></button>
+                <button pButton *ngIf="registered" type="button" label="Remove Registration!" (click)="deRegister()" class="ui-button-danger"></button>
         </div>
     </div>
 </p-dialog>
 
-<div class="ui-g game-block" (click)="displayDetails = !displayDetails">
-    <div class="ui-g-12">{{ game.name }}</div>
-    <div class="ui-g-2">{{ game.dm.name }}</div>
-    <div class="ui-g-2">{{ game.system.name }}</div>
-    <div class="ui-g-2">{{ game.day.name }} @ {{ game.time.name }}</div>
-    <div class="ui-g-2">Registered: {{ game.players.length > game.seats ? game.seats : game.players.length }} / {{ game.seats }}</div>
-    <div class="ui-g-2">Waitlist: {{ game.players.length > game.seats ? game.players.length - game.seats : 0 }} / {{ game.waitlist }}</div>
-    <div class="ui-g-12">{{ game.description }}</div>
+
+<div class="game-block clickable" (click)="displayDetails = !displayDetails">
+    <div class="background-image">
+        <img *ngIf="game.system.name == 'D&D'" src="assets/img/dnd.png" class="system-img" />
+    </div>
+    <div class="ui-g body-contents">
+        <div class="ui-g-12">{{ game.name }}</div>
+        <div class="ui-g-3">{{ game.dm.name }}</div>
+        <div class="ui-g-3">{{ game.day.name }} @ {{ game.time.name }}</div>
+        <div class="ui-g-3">Registered: {{ game.players.length > game.seats ? game.seats : game.players.length }} / {{ game.seats }}</div>
+        <div class="ui-g-3">Waitlist: {{ game.players.length > game.seats ? game.players.length - game.seats : 0 }} / {{ game.waitlist }}</div>
+        <div class="ui-g-12">{{ game.description }}</div>
+    </div>
 </div>

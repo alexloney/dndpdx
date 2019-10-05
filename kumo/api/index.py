@@ -50,7 +50,8 @@ def run_setup():
                 kumoId Int,
                 session varchar,
                 expiration date,
-                admin int
+                admin int,
+                FOREIGN KEY(kumoId) REFERENCES Players(kumoId)
             )
         """)
         conn.execute("""
@@ -181,7 +182,11 @@ def run_setup():
                 timeid INTEGER,
                 dmid INTEGER,
                 seats INTEGER,
-                waitlist INTEGER
+                waitlist INTEGER,
+                FOREIGN KEY(systemid) REFERENCES GameSystems(id),
+                FOREIGN KEY(dayid) REFERENCES Days(id),
+                FOREIGN KEY(timeid) REFERENCES Times(id),
+                FOREIGN KEY(dmid) REFERENCES DMs(id)
             )
         """)
         conn.execute("""
@@ -191,7 +196,9 @@ def run_setup():
             CREATE TABLE GameRegister (
                 kumoId INTEGER,
                 gameId INTEGER,
-                registered DATETIME
+                registered DATETIME,
+                FOREIGN KEY(kumoId) REFERENCES Players(kumoId),
+                FOREIGN KEY(gameId) REFERENCES Games(id)
             )
         """)
         conn.execute("""
@@ -252,6 +259,10 @@ def generate_session_id(id):
     return session_id
 
 def validate_session(session_id):
+    
+    # Debug code REMOVE WHEN I NPRODUCTION
+    return True
+
     if session_id == None:
         return False
 
@@ -338,8 +349,6 @@ def register_player():
 
 @app.route('/search/systems', methods=['GET'])
 def search_systems():
-    conn = db_connect.connect()
-
     session_id = request.headers.get('Authorization')
     print(session_id)
 
@@ -349,6 +358,8 @@ def search_systems():
         })
         return get_standard_response(response_str)
     
+    conn = db_connect.connect()
+
     query = conn.execute("SELECT * FROM GameSystems ORDER BY name")
     rows = query.fetchall()
 
@@ -367,6 +378,12 @@ def search_systems():
 def search_dms():
     session_id = request.headers.get('Authorization')
     print(session_id)
+
+    if not validate_session(session_id):
+        response_str = json.dumps({
+            'errorMsg': 'Invalid session, please log in first.'
+        })
+        return get_standard_response(response_str)
 
     conn = db_connect.connect()
     query = conn.execute('SELECT id, name FROM DMs ORDER BY id')
@@ -388,6 +405,12 @@ def search_days():
     session_id = request.headers.get('Authorization')
     print(session_id)
 
+    if not validate_session(session_id):
+        response_str = json.dumps({
+            'errorMsg': 'Invalid session, please log in first.'
+        })
+        return get_standard_response(response_str)
+
     conn = db_connect.connect()
     query = conn.execute('SELECT id, name FROM Days ORDER BY id')
 
@@ -408,6 +431,12 @@ def search_times():
     session_id = request.headers.get('Authorization')
     print(session_id)
 
+    if not validate_session(session_id):
+        response_str = json.dumps({
+            'errorMsg': 'Invalid session, please log in first.'
+        })
+        return get_standard_response(response_str)
+
     conn = db_connect.connect()
     query = conn.execute('SELECT id, name FROM Times ORDER BY id')
 
@@ -427,6 +456,12 @@ def search_times():
 def get_all_games():
     session_id = request.headers.get('Authorization')
     print(session_id)
+
+    if not validate_session(session_id):
+        response_str = json.dumps({
+            'errorMsg': 'Invalid session, please log in first.'
+        })
+        return get_standard_response(response_str)
 
     conn = db_connect.connect()
     query = conn.execute("""
@@ -505,6 +540,95 @@ def get_all_games():
     response_str = json.dumps(response_obj)
     return get_standard_response(response_str)
 
+@app.route('/games/id/<id>', methods=['GET'])
+def get_game_by_id(id):
+    session_id = request.headers.get('Authorization')
+    print(session_id)
+
+    if not validate_session(session_id):
+        response_str = json.dumps({
+            'errorMsg': 'Invalid session, please log in first.'
+        })
+        return get_standard_response(response_str)
+    
+    conn = db_connect.connect()
+    query = conn.execute("""
+        SELECT a.id,
+               a.name,
+               a.description,
+               a.seats,
+               a.waitlist,
+               b.name AS system,
+               b.id AS systemid,
+               c.name AS day,
+               c.id AS dayid,
+               d.name AS time,
+               d.id AS timeid,
+               e.name AS dm,
+               e.id AS dmid
+          FROM Games a 
+          JOIN GameSystems b 
+            ON a.systemid = b.id
+          JOIN Days c
+            ON a.dayid = c.id
+          JOIN Times d
+            ON a.timeid = d.id
+          JOIN DMs e
+            ON a.dmid = e.id
+         WHERE a.id = :g
+         ORDER BY c.sort, d.sort, b.sort
+    """, g=id)
+    
+    response_obj = {
+        'results': [
+
+        ]
+    }
+    row = query.fetchone()
+    obj = {'id': row.id,
+        'name': row.name,
+        'description': row.description,
+        'seats': row.seats,
+        'waitlist': row.waitlist,
+        'system': {
+            'id': row.systemid,
+            'name': row.system
+        },
+        'day': {
+            'id': row.dayid,
+            'name': row.day
+        },
+        'time': {
+            'id': row.timeid,
+            'name': row.time
+        },
+        'dm': {
+            'id': row.dmid,
+            'name': row.dm
+        },
+        'players': []}
+    query = conn.execute("""
+        SELECT a.kumoId, b.name
+            FROM GameRegister a
+            JOIN Players b
+            ON a.kumoId = b.kumoId
+            WHERE gameId = :g
+        ORDER BY registered
+    """, g=row.id)
+    players = query.fetchall()
+    for player in players:
+        player = {
+            'id': player.kumoId,
+            'name': player.name
+        }
+        obj['players'].append(player)
+
+    response_obj['results'].append(obj)
+    
+    response_str = json.dumps(response_obj)
+    return get_standard_response(response_str)
+
+
 @app.route('/games/register/<id>', methods=['POST'])
 def registerForGame(id):
     session_id = request.headers.get('Authorization')
@@ -546,7 +670,93 @@ def registerForGame(id):
     })
     return get_standard_response(response_str)
 
+@app.route('/games/deregister/<id>', methods=['POST'])
+def deRegisterForGame(id):
+    session_id = request.headers.get('Authorization')
+    print(session_id)
 
+    if not validate_session(session_id):
+        response_str = json.dumps({
+            'errorMsg': 'Invalid session, please log in first.'
+        })
+        return get_standard_response(response_str)
+
+    player_id = get_player_id(session_id)
+    if player_id == False:
+        response_str = json.dumps({
+            'errorMsg': 'Invalid session, please log in first.'
+        })
+        return get_standard_response(response_str)
+    
+    conn = db_connect.connect()
+    query = conn.execute('SELECT COUNT(*) AS cnt FROM GameRegister WHERE kumoId = :k AND gameId = :g', k=player_id, g=id)
+
+    result = query.fetchone()
+    if result == None:
+        response_str = json.dumps({
+            'errorMsg': 'Unable to determine registration'
+        })
+        return get_standard_response(response_str)
+    
+    if int(result['cnt']) != 0:
+        conn.execute("DELETE FROM GameRegister WHERE kumoId = :k AND gameId = :g", k=player_id, g=id)
+
+    query = conn.execute('SELECT COUNT(*) AS cnt FROM GameRegister WHERE kumoId = :k AND gameId = :g', k=player_id, g=id)
+    result = query.fetchone()
+    if result == None:
+        response_str = json.dumps({
+            'errorMsg': 'Unable to determine registration'
+        })
+        return get_standard_response(response_str)
+    elif int(result['cnt']) != 0:
+        response_str = json.dumps({
+            'errorMsg': 'Failed to remove registration'
+        })
+        return get_standard_response(response_str)
+
+    response_str = json.dumps({
+        'success': True
+    })
+    return get_standard_response(response_str)
+
+@app.route('/games/registered/<id>', methods=['GET'])
+def is_user_registered(id):
+    session_id = request.headers.get('Authorization')
+    print(session_id)
+
+    if not validate_session(session_id):
+        response_str = json.dumps({
+            'errorMsg': 'Invalid session, please log in first.'
+        })
+        return get_standard_response(response_str)
+
+    player_id = get_player_id(session_id)
+    if player_id == False:
+        response_str = json.dumps({
+            'errorMsg': 'Invalid session, please log in first.'
+        })
+        return get_standard_response(response_str)
+    
+    conn = db_connect.connect()
+    query = conn.execute('SELECT COUNT(*) AS cnt FROM GameRegister WHERE kumoId = :k AND gameId = :g', k=player_id, g=id)
+
+    result = query.fetchone()
+    if result == None:
+        response_str = json.dumps({
+            'errorMsg': 'Unable to determine registration'
+        })
+        return get_standard_response(response_str)
+    
+    if int(result['cnt']) == 0:
+        response_str = json.dumps({
+            'registered': False
+        })
+        return get_standard_response(response_str)
+    
+    response_str = json.dumps({
+        'registered': True
+    })
+    return get_standard_response(response_str)
 
 
 @app.route('/logout', methods=['POST'])

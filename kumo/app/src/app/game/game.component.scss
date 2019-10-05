@@ -1,3 +1,6 @@
+.clickable {
+    cursor: pointer;
+}
 .game-block {
     border: 1px solid;
     border-radius: 2px;
@@ -6,4 +9,19 @@
 
 .line-label {
     text-align: right;
+}
+
+.system-img {
+    max-height: 100px;
+    margin-left: 10px;
+    margin-top: 10px;
+    opacity: 0.25;
+}
+
+.background-image {
+    display: inline-block;
+}
+
+.body-contents {
+    display: inline-block;
 }
