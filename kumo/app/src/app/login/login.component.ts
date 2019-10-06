@@ -1,3 +1,4 @@
+import { UserService } from './../user.service';
 import { ConfirmationService } from 'primeng/api';
 import { DatabaseService } from '../database.service';
 import { Component, OnInit } from '@angular/core';
@@ -18,7 +19,8 @@ export class LoginComponent implements OnInit {
 
   constructor(private ds: DatabaseService,
     private confirmationService: ConfirmationService,
-    private router: Router) { }
+    private router: Router,
+    private us: UserService) { }
 
   ngOnInit() {
   }
@@ -32,6 +34,8 @@ export class LoginComponent implements OnInit {
 
     if (this.userid.length === 0) {
       this.confirmationService.confirm({
+        header: 'Error',
+        icon: 'pi pi-exclamation-triangle',
         message: 'Please provide an ID',
         accept: () => {}
       });
@@ -45,13 +49,16 @@ export class LoginComponent implements OnInit {
           this.displayName = true;
         } else {
           this.confirmationService.confirm({
+            header: 'Error',
+            icon: 'pi pi-exclamation-triangle',
             message: success.errorMsg,
             accept: () => {}
           });
         }
       } else {
         if (success.hasOwnProperty('sessionId')) {
-          this.ds.setSessionId(success.sessionId);
+          this.us.reset(success);
+          // this.ds.setSessionId(success.sessionId);
           this.router.navigate(['/home']);
         }
       }
@@ -81,7 +88,8 @@ export class LoginComponent implements OnInit {
     this.loading = true;
     this.ds.register(this.userid, this.name).subscribe((success: any) => {
       if (success.hasOwnProperty('sessionId')) {
-        this.ds.setSessionId(success.sessionId);
+        this.us.reset(success);
+        // this.ds.setSessionId(success.sessionId);
         this.router.navigate(['/home']);
       }
     }, (failure) => {

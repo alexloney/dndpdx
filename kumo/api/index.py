@@ -7,7 +7,9 @@ from flask import jsonify
 import json
 import uuid
 
-db_connect = create_engine('sqlite:///database2.db')
+db_connect = create_engine('sqlite:///database3.db')
+# mysql+mysqlconnector://<user>:<password>@<host>:<port>/<default_db>
+# db_connect = create_engine('mysql+mysqldb://')
 app = Flask(__name__)
 CORS(app)
 api = Api(app)
@@ -40,10 +42,15 @@ def run_setup():
         conn.execute("""
             CREATE TABLE Players (
                 kumoId Int,
-                name varchar
+                name varchar,
+                admin INTEGER,
+                dm INTEGER
             )""")
         conn.execute("""
-            INSERT INTO Players (kumoId, name) VALUES (1, 'Alex')
+            INSERT INTO Players (kumoId, name, admin, dm) VALUES (1, 'Alex Loney', 1, 1)
+        """)
+        conn.execute("""
+            INSERT INTO Players (kumoId, name, admin, dm) VALUES (2, 'Peter H', 0, 1)
         """)
         conn.execute("""
             CREATE TABLE UserSessions (
@@ -94,19 +101,6 @@ def run_setup():
         """)
         conn.execute("""
             INSERT INTO GameSystems (name, sort) VALUES ('MLP', 6)
-        """)
-
-        conn.execute("""
-            CREATE TABLE DMs (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name varchar
-            )
-        """)
-        conn.execute("""
-            INSERT INTO DMs (name) VALUES ('Alex Loney');
-        """)
-        conn.execute("""
-            INSERT INTO DMs (name) VALUES ('Peter');
         """)
         conn.execute("""
             CREATE TABLE Times (
@@ -186,14 +180,14 @@ def run_setup():
                 FOREIGN KEY(systemid) REFERENCES GameSystems(id),
                 FOREIGN KEY(dayid) REFERENCES Days(id),
                 FOREIGN KEY(timeid) REFERENCES Times(id),
-                FOREIGN KEY(dmid) REFERENCES DMs(id)
+                FOREIGN KEY(dmid) REFERENCES Players(id)
             )
         """)
         conn.execute("""
             INSERT INTO Games (name, description, systemid, dayid, timeid, dmid, seats, waitlist) VALUES ('DDEX1-08 Tales Trees Tell', 'Despite the shaky alliance that exists with the elves of the Quivering Forest, they do not suffer trespass in their realm lightly, especially from common folk from nearby Phlan. A woodworker''s recent blunder into the forest might set off a diplomatic incident. Can you help find him and mollify the aggravated elves?', 1, 1, 1, 1, 7, 4)
         """)
         conn.execute("""
-            INSERT INTO Games (name, description, systemid, dayid, timeid, dmid, seats, waitlist) VALUES ('DDEX1-09 Outlaws of the Iron Route', 'The Iron Route, an important trade road east of Phlan, is beset by competing bandits. An exiled Black Fist officer leads his band of mercenaries turned cloaked ruffians, while a mysterious dragonborn sorcerer commands screaming savages from the north. In this war over the trade route, the beleaguered merchants are the victims, and Phlan suffers from a lack of supplies. It''s up to adventurers to strike out and reopen this vital route.', 1, 1, 1, 1, 7, 4)
+            INSERT INTO Games (name, description, systemid, dayid, timeid, dmid, seats, waitlist) VALUES ('DDEX1-09 Outlaws of the Iron Route', 'The Iron Route, an important trade road east of Phlan, is beset by competing bandits. An exiled Black Fist officer leads his band of mercenaries turned cloaked ruffians, while a mysterious dragonborn sorcerer commands screaming savages from the north. In this war over the trade route, the beleaguered merchants are the victims, and Phlan suffers from a lack of supplies. It''s up to adventurers to strike out and reopen this vital route.', 1, 1, 1, 2, 7, 4)
         """)
         conn.execute("""
             CREATE TABLE GameRegister (
@@ -246,15 +240,24 @@ def update_session_expiration(session):
     # conn.commit()
 
 def generate_session_id(id):
+    print('Generating Session ID')
     conn = db_connect.connect()
-    query = conn.execute("DELETE FROM UserSessions WHERE expiration < date('now')")
 
+    print('Deleting expired sessions')
+    query = conn.execute("DELETE FROM UserSessions WHERE expiration < date('now')")
+    query.close()
+
+    print('Finding the users session')
     query = conn.execute("SELECT * FROM UserSessions WHERE kumoId = :i", i=int(id))
     result = query.fetchone()
+    query.close()
+
     if result != None:
+        print('Existing session found, reusing')
         session_id = result.session
         update_session_expiration(session_id)
     else:
+        print('Generating new session')
         session_id = str(uuid.uuid1())
         query = conn.execute("INSERT INTO UserSessions (kumoId, session, expiration) VALUES (:i, :s, DATETIME(DATE('now'), '+5 minutes'))", i=int(id), s=session_id)
         # conn.commit()
@@ -271,8 +274,9 @@ def validate_session(session_id):
 
     conn = db_connect.connect()
     query = conn.execute("SELECT * FROM UserSessions WHERE session = :s AND expiration > date('now')", s=session_id)
-
     result = query.fetchone()
+    query.close()
+
     if result == None:
         return False
     return True
@@ -283,8 +287,9 @@ def get_player_id(session_id):
     
     conn = db_connect.connect()
     query = conn.execute('SELECT kumoId FROM UserSessions WHERE session = :s', s=session_id)
-
     result = query.fetchone()
+    query.close()
+
     if result == None:
         return False
     
@@ -295,8 +300,8 @@ def get_player(kumo_id):
     print('Looking up player with ID ' + kumo_id)
     conn = db_connect.connect()
     query = conn.execute('SELECT * FROM Players WHERE kumoId = :i', i=int(kumo_id))
-    
     result = query.fetchone()
+    query.close()
     if result == None:
         print('Kumo ID not found...')
         response_str = json.dumps({
@@ -307,6 +312,8 @@ def get_player(kumo_id):
         response_str = json.dumps({
             'id': result.kumoId,
             'name': result.name,
+            'admin': result.admin,
+            'dm': result.dm,
             'sessionId': generate_session_id(result.kumoId)
         })
 
@@ -329,6 +336,7 @@ def register_player():
     conn = db_connect.connect()
     query = conn.execute('SELECT * FROM Players WHERE kumoId = :i', i=int(kumoId))
     result = query.fetchone()
+    query.close()
     print('Searching for existing user')
 
     if result:
@@ -340,7 +348,8 @@ def register_player():
         })
         return get_standard_response(response_str)
 
-    query = conn.execute("INSERT INTO Players (kumoId, name) VALUES (:i, :n)", i=int(kumoId), n=name)
+    query = conn.execute("INSERT INTO Players (kumoId, name, admin, dm) VALUES (:i, :n, 0, 0)", i=int(kumoId), n=name)
+    query.close()
     print('Adding user to database')
 
     response_str = json.dumps({
@@ -365,6 +374,7 @@ def search_systems():
 
     query = conn.execute("SELECT * FROM GameSystems ORDER BY name")
     rows = query.fetchall()
+    query.close()
 
     response_obj = {
         'results': [
@@ -389,16 +399,17 @@ def search_dms():
         return get_standard_response(response_str)
 
     conn = db_connect.connect()
-    query = conn.execute('SELECT id, name FROM DMs ORDER BY id')
+    query = conn.execute('SELECT kumoId, name FROM Players WHERE dm = 1 ORDER BY name')
+    rows = query.fetchall()
+    query.close()
 
     response_obj = {
         'results': [
 
         ]
     }
-    rows = query.fetchall()
     for row in rows:
-        response_obj['results'].append({'id': row.id, 'name': row.name})
+        response_obj['results'].append({'id': row.kumoId, 'name': row.name})
     
     response_str = json.dumps(response_obj)
     return get_standard_response(response_str)
@@ -416,13 +427,14 @@ def search_days():
 
     conn = db_connect.connect()
     query = conn.execute('SELECT id, name FROM Days ORDER BY id')
+    rows = query.fetchall()
+    query.close()
 
     response_obj = {
         'results': [
 
         ]
     }
-    rows = query.fetchall()
     for row in rows:
         response_obj['results'].append({'id': row.id, 'name': row.name})
     
@@ -442,13 +454,14 @@ def search_times():
 
     conn = db_connect.connect()
     query = conn.execute('SELECT id, name FROM Times ORDER BY id')
+    rows = query.fetchall()
+    query.close()
 
     response_obj = {
         'results': [
 
         ]
     }
-    rows = query.fetchall()
     for row in rows:
         response_obj['results'].append({'id': row.id, 'name': row.name})
     
@@ -480,7 +493,7 @@ def get_all_games():
                d.name AS time,
                d.id AS timeid,
                e.name AS dm,
-               e.id AS dmid
+               e.kumoId AS dmid
           FROM Games a 
           JOIN GameSystems b 
             ON a.systemid = b.id
@@ -488,18 +501,20 @@ def get_all_games():
             ON a.dayid = c.id
           JOIN Times d
             ON a.timeid = d.id
-          JOIN DMs e
-            ON a.dmid = e.id
+          JOIN Players e
+            ON a.dmid = e.kumoId
          ORDER BY c.sort, d.sort, b.sort
     """)
+    rows = query.fetchall()
+    query.close()
 
     response_obj = {
         'results': [
 
         ]
     }
-    rows = query.fetchall()
     for row in rows:
+        print('Row ID: ' + str(row.id))
         obj = {'id': row.id,
             'name': row.name,
             'description': row.description,
@@ -531,6 +546,8 @@ def get_all_games():
             ORDER BY registered
         """, g=row.id)
         players = query.fetchall()
+        query.close()
+
         for player in players:
             player = {
                 'id': player.kumoId,
@@ -568,7 +585,7 @@ def get_game_by_id(id):
                d.name AS time,
                d.id AS timeid,
                e.name AS dm,
-               e.id AS dmid
+               e.kumoId AS dmid
           FROM Games a 
           JOIN GameSystems b 
             ON a.systemid = b.id
@@ -576,18 +593,19 @@ def get_game_by_id(id):
             ON a.dayid = c.id
           JOIN Times d
             ON a.timeid = d.id
-          JOIN DMs e
-            ON a.dmid = e.id
+          JOIN Players e
+            ON a.dmid = e.kumoId
          WHERE a.id = :g
          ORDER BY c.sort, d.sort, b.sort
     """, g=id)
+    row = query.fetchone()
+    query.close()
     
     response_obj = {
         'results': [
 
         ]
     }
-    row = query.fetchone()
     obj = {'id': row.id,
         'name': row.name,
         'description': row.description,
@@ -619,6 +637,7 @@ def get_game_by_id(id):
         ORDER BY registered
     """, g=row.id)
     players = query.fetchall()
+    query.close()
     for player in players:
         player = {
             'id': player.kumoId,
@@ -664,7 +683,7 @@ def get_my_games():
                d.name AS time,
                d.id AS timeid,
                e.name AS dm,
-               e.id AS dmid
+               e.kumoId AS dmid
           FROM Games a 
           JOIN GameSystems b 
             ON a.systemid = b.id
@@ -672,20 +691,21 @@ def get_my_games():
             ON a.dayid = c.id
           JOIN Times d
             ON a.timeid = d.id
-          JOIN DMs e
-            ON a.dmid = e.id
+          JOIN Players e
+            ON a.dmid = e.kumoId
           JOIN GameRegister f
             ON a.id = f.gameId
          WHERE f.kumoId = :i
          ORDER BY c.sort, d.sort, b.sort
     """, i = player_id)
+    rows = query.fetchall()
+    query.close()
 
     response_obj = {
         'results': [
 
         ]
     }
-    rows = query.fetchall()
     for row in rows:
         obj = {'id': row.id,
             'name': row.name,
@@ -718,6 +738,8 @@ def get_my_games():
             ORDER BY registered
         """, g=row.id)
         players = query.fetchall()
+        query.close()
+
         for player in players:
             player = {
                 'id': player.kumoId,
@@ -751,8 +773,9 @@ def registerForGame(id):
     
     conn = db_connect.connect()
     query = conn.execute('SELECT COUNT(*) AS cnt FROM GameRegister WHERE kumoId = :k AND gameId = :g', k=player_id, g=id)
-
     result = query.fetchone()
+    query.close()
+
     if result == None:
         response_str = json.dumps({
             'errorMsg': 'Unable to determine registration'
@@ -766,6 +789,7 @@ def registerForGame(id):
         return get_standard_response(response_str)
 
     query = conn.execute("INSERT INTO GameRegister (kumoId, gameId, registered) VALUES (:k, :g, date('now'))", k=player_id, g=id)
+    query.close()
 
     response_str = json.dumps({
         'success': True
@@ -792,8 +816,9 @@ def deRegisterForGame(id):
     
     conn = db_connect.connect()
     query = conn.execute('SELECT COUNT(*) AS cnt FROM GameRegister WHERE kumoId = :k AND gameId = :g', k=player_id, g=id)
-
     result = query.fetchone()
+    query.close()
+
     if result == None:
         response_str = json.dumps({
             'errorMsg': 'Unable to determine registration'
@@ -802,9 +827,12 @@ def deRegisterForGame(id):
     
     if int(result['cnt']) != 0:
         conn.execute("DELETE FROM GameRegister WHERE kumoId = :k AND gameId = :g", k=player_id, g=id)
+        query.close()
 
     query = conn.execute('SELECT COUNT(*) AS cnt FROM GameRegister WHERE kumoId = :k AND gameId = :g', k=player_id, g=id)
     result = query.fetchone()
+    query.close()
+
     if result == None:
         response_str = json.dumps({
             'errorMsg': 'Unable to determine registration'
@@ -841,8 +869,9 @@ def is_user_registered(id):
     
     conn = db_connect.connect()
     query = conn.execute('SELECT COUNT(*) AS cnt FROM GameRegister WHERE kumoId = :k AND gameId = :g', k=player_id, g=id)
-
     result = query.fetchone()
+    query.close()
+
     if result == None:
         response_str = json.dumps({
             'errorMsg': 'Unable to determine registration'
@@ -868,6 +897,7 @@ def logout():
 
     conn = db_connect.connect()
     query = conn.execute('DELETE FROM UserSessions WHERE session = :s', s=session_id)
+    query.close()
 
     response_str = json.dumps({})
     return get_standard_response(response_str)

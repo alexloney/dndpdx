@@ -1,86 +1,174 @@
-<p-dialog header="{{game.name}}" modal="true" appendTo="body" dismissableMask="true" [(visible)]="displayDetails" resizable="false">
-    <div class="ui-g">
-        <div class="ui-g-12">
-            <button pButton *ngIf="!registered" type="button" label="Register!" (click)="register()" class="ui-button-secondary"></button>
-            <button pButton *ngIf="registered" type="button" label="Remove Registration!" (click)="deRegister()" class="ui-button-danger"></button>
+    <p-dialog 
+        header="{{game.name}}"
+        modal="true"
+        appendTo="body"
+        dismissableMask="true"
+        [contentStyle]="{'overflow': 'scroll', 'max-height': '75%'}"
+        [(visible)]="displayDetails"
+        resizable="false">
+        <div class="popup-content-block">
+            <div class="ui-g">
+                <div class="ui-g-12">
+                    <button pButton *ngIf="!registered && !editingEnabled" type="button" label="Register!" (click)="register()" class="ui-button-secondary btn"></button>
+                    <button pButton *ngIf="registered && !editingEnabled" type="button" label="Remove Registration!" (click)="deRegister()" class="ui-button-danger btn"></button>
+                    <button pButton *ngIf="isAdmin && !editingEnabled" type="button" label="Enable Editing" (click)="enableEditing()" class="ui-button-secondary btn"></button>
+                    <button pButton *ngIf="isAdmin && editingEnabled" type="button" label="Save Edits" (click)="saveEdits()" class="ui-button-secondary btn"></button>
+                    <button pButton *ngIf="isAdmin && editingEnabled" type="button" label="Cancel Edits" (click)="cancelEdits()" class="ui-button-secondary btn"></button>
+                </div>
+                <div class="ui-g-1 line-label">
+                    Name:
+                </div>
+                <div class="ui-g-11">
+                    <span *ngIf="editingEnabled">
+                        <input pInputText type="text" [(ngModel)]="editedGame.name" class="editField"/>
+                        <div *ngIf="errorMessages.name.length > 0" class="error-text">
+                            {{ errorMessages.name }}
+                        </div>
+                    </span>
+                    <span *ngIf="!editingEnabled">
+                        {{ game.name }}
+                    </span>
+                </div>
+                <div class="ui-g-1 line-label">
+                    DM: 
+                </div>
+                <div class="ui-g-11">
+                    <span *ngIf="editingEnabled">
+                        <p-dropdown [options]="dms" [(ngModel)]="editedGame.dm"></p-dropdown>
+                        <input *ngIf="editedGame.dm.id == 0" pInputText placeholder="DM Name" type="text" [(ngModel)]="newDmName" class="inline-edit" />
+                        <input *ngIf="editedGame.dm.id == 0" pInputText placeholder="DM Kumo ID" type="text" [(ngModel)]="newDmId" class="inline-edit" />
+                        <div *ngIf="errorMessages.dm.length > 0" class="error-text">
+                            {{ errorMessages.dm }}
+                        </div>
+                    </span>
+                    <span *ngIf="!editingEnabled">
+                        {{ game.dm.name }}
+                    </span>
+                </div>
+                <div class="ui-g-1 line-label">
+                    Game System:
+                </div>
+                <div class="ui-g-11">
+                    <span *ngIf="editingEnabled">
+                        <p-dropdown [options]="gameSystems" [(ngModel)]="editedGame.system"></p-dropdown>
+                        <input *ngIf="editedGame.system.id == 0" pInputText placeholder="System Name" type="text" [(ngModel)]="newSystemName" class="inline-edit" />
+                        <div *ngIf="errorMessages.system.length > 0" class="error-text">
+                            {{ errorMessages.system }}
+                        </div>
+                    </span>
+                    <span *ngIf="!editingEnabled">
+                        {{ game.system.name }}
+                    </span>
+                </div>
+                <div class="ui-g-1 line-label">
+                    Day:
+                </div>
+                <div class="ui-g-11">
+                    <span *ngIf="editingEnabled">
+                        <p-dropdown [options]="days" [(ngModel)]="editedGame.day"></p-dropdown>
+                        <input *ngIf="editedGame.day.id == 0" pInputText placeholder="Day Name" type="text" [(ngModel)]="newDay" class="inline-edit" />
+                        <div *ngIf="errorMessages.day.length > 0" class="error-text">
+                            {{ errorMessages.day }}
+                        </div>
+                    </span>
+                    <span *ngIf="!editingEnabled">
+                        {{ game.day.name }}
+                    </span>
+                </div>
+                <div class="ui-g-1 line-label">
+                    Time:
+                </div>
+                <div class="ui-g-11">
+                    <span *ngIf="editingEnabled">
+                        <p-dropdown [options]="times" [(ngModel)]="editedGame.time"></p-dropdown>
+                        <input *ngIf="editedGame.time.id == 0" pInputText placeholder="Time Name" type="text" [(ngModel)]="newTime" class="inline-edit" />
+                        <div *ngIf="errorMessages.time.length > 0" class="error-text">
+                            {{ errorMessages.time }}
+                        </div>
+                    </span>
+                    <span *ngIf="!editingEnabled">
+                        {{ game.time.name }}
+                    </span>
+                </div>
+                <div class="ui-g-1 line-label">
+                    Description:
+                </div>
+                <div class="ui-g-11">
+                    <span *ngIf="editingEnabled">
+                        <p-editor [(ngModel)]="editedGame.description" [style]="{'height':'150px'}"></p-editor>
+                        <div *ngIf="errorMessages.description.length > 0" class="error-text">
+                            {{ errorMessages.description }}
+                        </div>
+                    </span>
+                    <span *ngIf="!editingEnabled">
+                        {{ game.description }}
+                    </span>
+                </div>
+                <div class="ui-g-12">
+                    <div *ngIf="editingEnabled" class="ui-g">
+                        <div class="ui-g-1 line-label">
+                            Registered:
+                        </div>
+                        <div class="ui-g-11">
+                            <input pInputText type="text" [(ngModel)]="editedGame.seats" class="editField"/>
+                            <div *ngIf="errorMessages.registered.length > 0" class="error-text">
+                                {{ errorMessages.registered }}
+                            </div>
+                        </div>
+                        <div class="ui-g-1 line-label">
+                            Waitlisted:
+                        </div>
+                        <div class="ui-g-11">
+                            <input pInputText type="text" [(ngModel)]="editedGame.waitlist" class="editField"/>
+                            <div *ngIf="errorMessages.waitlist.length > 0" class="error-text">
+                                {{ errorMessages.waitlist }}
+                            </div>
+                        </div>
+                        <div class="ui-g-1 line-label">
+                            Players:
+                        </div>
+                        <div class="ui-g-11" >
+                            <p-listbox [options]="allPlayers" [(ngModel)]="selectedPlayer"></p-listbox>
+                            <!-- TODO: Implement player editing -->
+                        </div>
+                    </div>
+                    <div *ngIf="!editingEnabled" class="ui-g">
+                        <div class="ui-g-1 line-label">
+                            Registered:
+                        </div>
+                        <div class="ui-g-11">
+                            {{ game.players.length > game.seats ? game.seats : game.players.length }} / {{ game.seats }}
+                        </div>
+                        <div class="ui-g-1">
+        
+                        </div>
+                        <div class="ui-g-11">
+                            <p-listbox *ngIf="game.players.length > 0" [options]="seatedPlayers" [(ngModel)]="selectedSeatedPlayer"></p-listbox>
+                        </div>
+                        <div class="ui-g-1 line-label">
+                            Waitlisted:
+                        </div>
+                        <div class="ui-g-11">
+                            {{ game.players.length > game.seats ? game.players.length - game.seats : 0 }} / {{ game.waitlist }}
+                        </div>
+                        <div class="ui-g-1 line-label">
+        
+                        </div>
+                        <div class="ui-g-11" >
+                            <p-listbox *ngIf="game.players.length > game.seats" [options]="waitingPlayers" [(ngModel)]="selectedWaitingPlayer"></p-listbox>
+                        </div>
+                    </div>
+                </div>
+                <div class="ui-g-12">
+                    <button pButton *ngIf="!registered && !editingEnabled" type="button" label="Register!" (click)="register()" class="ui-button-secondary btn"></button>
+                    <button pButton *ngIf="registered && !editingEnabled" type="button" label="Remove Registration!" (click)="deRegister()" class="ui-button-danger btn"></button>
+                    <button pButton *ngIf="isAdmin && !editingEnabled" type="button" label="Enable Editing" (click)="enableEditing()" class="ui-button-secondary btn"></button>
+                    <button pButton *ngIf="isAdmin && editingEnabled" type="button" label="Save Edits" (click)="saveEdits()" class="ui-button-secondary btn"></button>
+                    <button pButton *ngIf="isAdmin && editingEnabled" type="button" label="Cancel Edits" (click)="cancelEdits()" class="ui-button-secondary btn"></button>
+                </div>
+            </div>
         </div>
-        <div class="ui-g-1 line-label">
-            Name:
-        </div>
-        <div class="ui-g-11">
-            {{ game.name }}
-        </div>
-        <div class="ui-g-1 line-label">
-            DM: 
-        </div>
-        <div class="ui-g-11">
-            {{ game.dm.name }}
-        </div>
-        <div class="ui-g-1 line-label">
-            Game System:
-        </div>
-        <div class="ui-g-11">
-            {{ game.system.name }}
-        </div>
-        <div class="ui-g-1 line-label">
-            Day:
-        </div>
-        <div class="ui-g-11">
-            {{ game.day.name }}
-        </div>
-        <div class="ui-g-1 line-label">
-            Time:
-        </div>
-        <div class="ui-g-11">
-            {{ game.time.name }}
-        </div>
-        <div class="ui-g-1 line-label">
-            Description:
-        </div>
-        <div class="ui-g-11">
-            {{ game.description }}
-        </div>
-        <div class="ui-g-1 line-label">
-            Registered:
-        </div>
-        <div class="ui-g-11">
-            {{ game.players.length > game.seats ? game.seats : game.players.length }} / {{ game.seats }}
-        </div>
-        <div class="ui-g-1">
-
-        </div>
-        <div class="ui-g-11" *ngIf="game.players.length > 0">
-            <p-listbox [options]="seatedPlayers" [(ngModel)]="selectedSeatedPlayer"></p-listbox>
-            <!-- <div *ngFor="let player of game.players; let i = index">
-                <span *ngIf="i < game.seats">
-                    {{ i+1 }}. {{ player.name }}
-                </span>
-            </div> -->
-        </div>
-        <div class="ui-g-1 line-label">
-            Waitlisted:
-        </div>
-        <div class="ui-g-11">
-            {{ game.players.length > game.seats ? game.players.length - game.seats : 0 }} / {{ game.waitlist }}
-        </div>
-        <div class="ui-g-1 line-label">
-
-        </div>
-        <div class="ui-g-11" *ngIf="game.players.length > game.seats">
-            <p-listbox [options]="waitingPlayers" [(ngModel)]="selectedWaitingPlayer"></p-listbox>
-            <!-- <div *ngFor="let player of game.players; let i = index">
-                <span *ngIf="i >= game.seats">
-                    {{ i - game.seats + 1 }}. {{ player.name }}
-                </span>
-            </div> -->
-        </div>
-        <div class="ui-g-12">
-                <button pButton *ngIf="!registered" type="button" label="Register!" (click)="register()" class="ui-button-secondary"></button>
-                <button pButton *ngIf="registered" type="button" label="Remove Registration!" (click)="deRegister()" class="ui-button-danger"></button>
-        </div>
-    </div>
-</p-dialog>
-
+    </p-dialog>
 
 <div class="game-block clickable" (click)="displayDetails = !displayDetails">
     <div class="ui-g">

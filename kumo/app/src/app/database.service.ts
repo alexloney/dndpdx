@@ -1,3 +1,4 @@
+import { UserService } from './user.service';
 import { ConfirmationService } from 'primeng/api';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
@@ -24,9 +25,10 @@ export class DatabaseService {
   private sessionId = '';
 
   constructor(private http: HttpClient,
-    private confirmationService: ConfirmationService) { }
+    private confirmationService: ConfirmationService,
+    private us: UserService) { }
 
-
+  /*
   public handleDatabaseResponse(resp) {
     if (resp.hasOwnProperty('errorMsg')) {
       this.confirmationService.confirm({
@@ -42,6 +44,7 @@ export class DatabaseService {
 
     return resp;
   }
+  */
 
   private getHeaders(type) {
     let headers: any = {};
@@ -52,8 +55,8 @@ export class DatabaseService {
       headers['Content-Type'] = 'application/x-www-form-urlencoded';
     }
 
-    if (this.sessionId !== null && this.sessionId.length > 0) {
-      headers['Authorization'] = this.sessionId;
+    if (this.us.getSessionId() && this.us.getSessionId().length > 0) {
+      headers['Authorization'] = this.us.getSessionId();
     }
 
     return { 'headers': new HttpHeaders(headers) };

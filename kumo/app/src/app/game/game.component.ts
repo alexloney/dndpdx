@@ -1,6 +1,8 @@
+import { UserService } from './../user.service';
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { DatabaseService } from '../database.service';
 import { ConfirmationService } from 'primeng/api';
+import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 
 @Component({
   selector: 'app-game',
@@ -32,8 +34,30 @@ export class GameComponent implements OnInit {
     return ret;
   }
 
+  public selectedPlayer;
+  public get allPlayers() {
+    let ret = [];
+
+    for (let i = 0; i < this.editedGame.players.length; ++i) {
+      ret.push({label: this.game.players[i].name, value: {id: this.game.players[i].id, name: this.game.players[i].name}});
+    }
+
+    return ret;
+  }
+
+  public get isAdmin() {
+    return this.us.isAdmin();
+  }
+
+  public editingEnabled = false;
   public registered = false;
   public displayDetails = false;
+  public editedGame: any = {};
+  public newDmName = '';
+  public newDmId = '';
+  public newSystemName = '';
+  public newDay = '';
+  public newTime = '';
 
   public get gameSystem() {
     if (this.game.system.name === 'D&D' ||
@@ -48,12 +72,300 @@ export class GameComponent implements OnInit {
     return 'Other';
   }
 
+  public gameSystems = [
+    { label: 'New System', value: { id: 0, name: 'New System'}}
+  ];
+
+  public dms = [
+    { label: 'New DM', value: { id: 0, name: 'New DM'}}
+  ];
+
+  public days = [
+    { label: 'New Day', value: { id: 0, name: 'New Day'}}
+  ];
+
+  public times = [
+    { label: 'New Time', value: { id: 0, name: 'New Time'}}
+  ];
+
+  public errorMessages = {
+    name: '',
+    dm: '',
+    system: '',
+    day: '',
+    time: '',
+    description: '',
+    registered: '',
+    waitlist: ''
+  };
+
   constructor(private db: DatabaseService,
-    private confirmationService: ConfirmationService) {
+    private us: UserService,
+    private confirmationService: ConfirmationService,
+    private fb: FormBuilder) {
       setTimeout(() => this.checkRegistration(), 500);
     }
 
   ngOnInit() {
+  }
+
+  public validateFields() {
+    let pass = true;
+
+    this.errorMessages.name = '';
+    this.errorMessages.dm = '';
+    this.errorMessages.system = '';
+    this.errorMessages.day = '';
+    this.errorMessages.time = '';
+    this.errorMessages.description = '';
+    this.errorMessages.registered = '';
+    this.errorMessages.waitlist = '';
+
+    if (this.editedGame.name.length === 0) {
+      this.errorMessages.name = 'You must provide a name';
+      pass = false;
+    }
+
+    if (this.editedGame.dm.id === 0) {
+      if (this.newDmName.length === 0) {
+        this.errorMessages.dm = '<div>You must provide a DM Name</div>';
+        pass = false;
+      }
+      
+      if (this.newDmId.length === 0) {
+        this.errorMessages.dm += '<div>You must provide a DM Kumo ID</div>';
+        pass = false;
+      }
+    }
+
+    if (this.editedGame.system.id === 0) {
+      if (this.newSystemName.length === 0) {
+        this.errorMessages.system = 'You must provide a System Name';
+        pass = false;
+      }
+    }
+
+    if (this.editedGame.day.id === 0) {
+      if (this.newDmId.length === 0) {
+        this.errorMessages.day = 'You must provide a Day Name';
+        pass = false;
+      }
+    }
+
+    if (this.editedGame.time.id === 0) {
+      if (this.newTime.length === 0) {
+        this.errorMessages.time = 'You must provide a Time Name';
+        pass = false;
+      }
+    }
+
+    if (!this.editedGame.description) {
+      this.errorMessages.description = 'You must provide a Description';
+      pass = false;
+    }
+    if (this.editedGame.description.length === 0) {
+      this.errorMessages.description = 'You must provide a Description';
+      pass = false;
+    }
+
+    if (this.editedGame.seats.length === 0) {
+      this.errorMessages.registered = 'You must provide a number of seats';
+      pass = false;
+    } else if (isNaN(this.editedGame.seats)) {
+      this.errorMessages.registered = 'You must provide a number of seats';
+      pass = false;
+    }
+    
+    if (this.editedGame.waitlist.length === 0) {
+      this.errorMessages.waitlist = 'You must provide a number of waitlist';
+      pass = false;
+    } else if (isNaN(this.editedGame.waitlist)) {
+      this.errorMessages.waitlist = 'You must provide a number of waitlist';
+      pass = false;
+    }
+
+    return pass;
+  }
+
+  public enableEditing() {
+    this.editingEnabled = true;
+    Object.assign(this.editedGame, this.game);
+
+    this.db.getGameSystems().subscribe(
+      (success: any) => {
+        console.log(success);
+        if (success.hasOwnProperty('errorMsg')) {
+          this.confirmationService.confirm({
+            header: 'Error',
+            message: success.errorMsg,
+            icon: 'pi pi-exclamation-triangle',
+            accept: () => {}
+          });
+        } else {
+          this.gameSystems = [
+            { label: 'New System', value: { id: 0, name: 'New System'}}
+          ];
+          success.results.forEach((result) => {
+            this.gameSystems.push({label: result.name, value: { id: result.id, name: result.name }});
+          });
+        }
+      }, (failure) => {
+        console.error(failure);
+        if (failure.hasOwnProperty('errorMsg')) {
+          this.confirmationService.confirm({
+            header: 'Error',
+            message: failure.errorMsg,
+            icon: 'pi pi-exclamation-triangle',
+            accept: () => {}
+          });
+        } else {
+          this.confirmationService.confirm({
+            header: 'Error',
+            message: 'Unknown error occured',
+            icon: 'pi pi-exclamation-triangle',
+            accept: () => {}
+          });
+        }
+      }, () => {
+
+      }
+    );
+
+    this.db.getDungeonMasters().subscribe(
+      (success: any) => {
+        console.log(success);
+        if (success.hasOwnProperty('errorMsg')) {
+          this.confirmationService.confirm({
+            header: 'Error',
+            message: success.errorMsg,
+            icon: 'pi pi-exclamation-triangle',
+            accept: () => {}
+          });
+        } else {
+          this.dms = [
+            { label: 'New DM', value: { id: 0, name: 'New DM'}}
+          ];
+          success.results.forEach((result) => {
+            this.dms.push({label: result.name, value: { id: result.id, name: result.name }});
+          });
+        }
+      }, (failure) => {
+        console.error(failure);
+        if (failure.hasOwnProperty('errorMsg')) {
+          this.confirmationService.confirm({
+            header: 'Error',
+            message: failure.errorMsg,
+            icon: 'pi pi-exclamation-triangle',
+            accept: () => {}
+          });
+        } else {
+          this.confirmationService.confirm({
+            header: 'Error',
+            message: 'Unknown error occured',
+            icon: 'pi pi-exclamation-triangle',
+            accept: () => {}
+          });
+        }
+      }, () => {
+
+      }
+    );
+
+    this.db.getDays().subscribe(
+      (success: any) => {
+        console.log(success);
+        if (success.hasOwnProperty('errorMsg')) {
+          this.confirmationService.confirm({
+            header: 'Error',
+            message: success.errorMsg,
+            icon: 'pi pi-exclamation-triangle',
+            accept: () => {}
+          });
+        } else {
+          this.days = [
+            { label: 'New Day', value: { id: 0, name: 'New Day'}}
+          ];
+          success.results.forEach((result) => {
+            this.days.push({label: result.name, value: { id: result.id, name: result.name }});
+          });
+        }
+
+      }, (failure) => {
+        console.error(failure);
+        if (failure.hasOwnProperty('errorMsg')) {
+          this.confirmationService.confirm({
+            header: 'Error',
+            message: failure.errorMsg,
+            icon: 'pi pi-exclamation-triangle',
+            accept: () => {}
+          });
+        } else {
+          this.confirmationService.confirm({
+            header: 'Error',
+            message: 'Unknown error occured',
+            icon: 'pi pi-exclamation-triangle',
+            accept: () => {}
+          });
+        }
+
+      }, () => {
+
+      }
+    );
+
+    this.db.getTimes().subscribe(
+      (success: any) => {
+        console.log(success);
+        if (success.hasOwnProperty('errorMsg')) {
+          this.confirmationService.confirm({
+            header: 'Error',
+            message: success.errorMsg,
+            icon: 'pi pi-exclamation-triangle',
+            accept: () => {}
+          });
+        } else {
+          this.times = [
+            { label: 'New Time', value: { id: 0, name: 'New Time'}}
+          ];
+          success.results.forEach((result) => {
+            this.times.push({label: result.name, value: { id: result.id, name: result.name }});
+          });
+        }
+
+      }, (failure) => {
+        console.error(failure);
+        if (failure.hasOwnProperty('errorMsg')) {
+          this.confirmationService.confirm({
+            header: 'Error',
+            message: failure.errorMsg,
+            icon: 'pi pi-exclamation-triangle',
+            accept: () => {}
+          });
+        } else {
+          this.confirmationService.confirm({
+            header: 'Error',
+            message: 'Unknown error occured',
+            icon: 'pi pi-exclamation-triangle',
+            accept: () => {}
+          });
+        }
+
+      }, () => {
+
+      }
+    )
+  }
+
+  public cancelEdits() {
+    this.editingEnabled = false;
+    Object.assign(this.editedGame, this.game);
+  }
+
+  public saveEdits() {
+    console.log(this.editedGame);
+    if (this.validateFields()) {
+      // TODO: Proceed with saving
+    }
   }
 
   public checkRegistration() {

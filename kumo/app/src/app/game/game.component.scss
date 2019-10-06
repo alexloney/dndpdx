@@ -27,3 +27,43 @@
 .body-contents {
     display: inline-block;
 }
+
+.editField {
+    width: 100%;
+}
+
+.btn {
+    margin-right: 7px;
+}
+
+.inline-edit {
+    margin-left: 5px;
+}
+
+.error-text {
+    color: red;
+}
+/*
+p-dialog .ui-dialog {
+    overflow: scroll !important;
+    max-height: 70% !important;
+}
+
+body .ui-dialog .ui-dialog-content {
+    max-height: 100% !important;
+}
+
+::ng-deep p-dialog .ui-dialog .ui-dialog-content {
+    overflow: scroll;
+    max-height: 100%;
+}
+
+.c-dialog-overflow {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    overflow-y: scroll;
+}
+*/
