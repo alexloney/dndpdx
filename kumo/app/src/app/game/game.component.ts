@@ -12,6 +12,26 @@ export class GameComponent implements OnInit {
   @Input() game: any;
   @Output() refreshGameData = new EventEmitter();
 
+  public selectedSeatedPlayer;
+  public get seatedPlayers() {
+    let ret = [];
+    for (let i = 0; i < this.game.players.length && i < this.game.seats; ++i) {
+      ret.push({label: this.game.players[i].name, value: {id: this.game.players[i].id, name: this.game.players[i].name}});
+    }
+
+    return ret;
+  }
+
+  public selectedWaitingPlayer;
+  public get waitingPlayers() {
+    let ret = [];
+    for (let i = this.game.seats; i < this.game.players.length; ++i) {
+      ret.push({label: this.game.players[i].name, value: {id: this.game.players[i].id, name: this.game.players[i].name}});
+    }
+
+    return ret;
+  }
+
   public registered = false;
   public displayDetails = false;
 
@@ -139,6 +159,7 @@ export class GameComponent implements OnInit {
         } else if (success.hasOwnProperty('success') && success.success === true) {
           this.confirmationService.confirm({
             header: 'Success!',
+            icon: '',
             message: 'You have been registered!',
             accept: () => {}
           });

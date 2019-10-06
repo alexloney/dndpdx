@@ -1,8 +1,10 @@
+import { ConfirmationService } from 'primeng/api';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { map, catchError, tap } from 'rxjs/operators';
 import { environment } from './../environments/environment';
+import { SelectControlValueAccessor } from '@angular/forms';
 
 @Injectable({
   providedIn: 'root'
@@ -21,7 +23,25 @@ export class DatabaseService {
   };
   private sessionId = '';
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient,
+    private confirmationService: ConfirmationService) { }
+
+
+  public handleDatabaseResponse(resp) {
+    if (resp.hasOwnProperty('errorMsg')) {
+      this.confirmationService.confirm({
+        header: 'Error',
+        icon: 'pi pi-exclamation-triangle',
+        message: resp.errorMsg,
+        accept: () => {}
+      });
+      return false;
+    } else if (resp.hasOwnProperty('success')) {
+      return resp.success;
+    }
+
+    return resp;
+  }
 
   private getHeaders(type) {
     let headers: any = {};
@@ -67,7 +87,11 @@ export class DatabaseService {
     return this.http.get(this.endpoint + 'search/times', this.getHeaders('json'));
   }
 
-  public getAllGames() {
+  public getAllGames(mygames) {
+    if (mygames) {
+      return this.http.get(this.endpoint + 'games/mine', this.getHeaders('json'));
+    }
+
     return this.http.get(this.endpoint + 'games/all', this.getHeaders('json'));
   }
 
@@ -91,6 +115,8 @@ export class DatabaseService {
     let body = res;
     return body || { };
   }
+
+
 
   isIdValid(id): Observable<any> {
     return this.http.get(this.endpoint + 'players/' + id, this.getHeaders('json')).pipe(map(this.extractData));

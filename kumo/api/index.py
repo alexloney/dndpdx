@@ -190,7 +190,10 @@ def run_setup():
             )
         """)
         conn.execute("""
-            INSERT INTO Games (name, description, systemid, dayid, timeid, dmid, seats, waitlist) VALUES ('name', 'description', 1, 1, 1, 1, 7, 4)
+            INSERT INTO Games (name, description, systemid, dayid, timeid, dmid, seats, waitlist) VALUES ('DDEX1-08 Tales Trees Tell', 'Despite the shaky alliance that exists with the elves of the Quivering Forest, they do not suffer trespass in their realm lightly, especially from common folk from nearby Phlan. A woodworker''s recent blunder into the forest might set off a diplomatic incident. Can you help find him and mollify the aggravated elves?', 1, 1, 1, 1, 7, 4)
+        """)
+        conn.execute("""
+            INSERT INTO Games (name, description, systemid, dayid, timeid, dmid, seats, waitlist) VALUES ('DDEX1-09 Outlaws of the Iron Route', 'The Iron Route, an important trade road east of Phlan, is beset by competing bandits. An exiled Black Fist officer leads his band of mercenaries turned cloaked ruffians, while a mysterious dragonborn sorcerer commands screaming savages from the north. In this war over the trade route, the beleaguered merchants are the victims, and Phlan suffers from a lack of supplies. It''s up to adventurers to strike out and reopen this vital route.', 1, 1, 1, 1, 7, 4)
         """)
         conn.execute("""
             CREATE TABLE GameRegister (
@@ -624,6 +627,105 @@ def get_game_by_id(id):
         obj['players'].append(player)
 
     response_obj['results'].append(obj)
+    
+    response_str = json.dumps(response_obj)
+    return get_standard_response(response_str)
+
+@app.route('/games/mine')
+def get_my_games():
+    session_id = request.headers.get('Authorization')
+    print(session_id)
+
+    if not validate_session(session_id):
+        response_str = json.dumps({
+            'errorMsg': 'Invalid session, please log in first.'
+        })
+        return get_standard_response(response_str)
+
+    player_id = get_player_id(session_id)
+    if player_id == False:
+        response_str = json.dumps({
+            'errorMsg': 'Invalid session, please log in first.'
+        })
+        return get_standard_response(response_str)
+    
+    conn = db_connect.connect()
+    query = conn.execute("""
+        SELECT DISTINCT
+               a.id,
+               a.name,
+               a.description,
+               a.seats,
+               a.waitlist,
+               b.name AS system,
+               b.id AS systemid,
+               c.name AS day,
+               c.id AS dayid,
+               d.name AS time,
+               d.id AS timeid,
+               e.name AS dm,
+               e.id AS dmid
+          FROM Games a 
+          JOIN GameSystems b 
+            ON a.systemid = b.id
+          JOIN Days c
+            ON a.dayid = c.id
+          JOIN Times d
+            ON a.timeid = d.id
+          JOIN DMs e
+            ON a.dmid = e.id
+          JOIN GameRegister f
+            ON a.id = f.gameId
+         WHERE f.kumoId = :i
+         ORDER BY c.sort, d.sort, b.sort
+    """, i = player_id)
+
+    response_obj = {
+        'results': [
+
+        ]
+    }
+    rows = query.fetchall()
+    for row in rows:
+        obj = {'id': row.id,
+            'name': row.name,
+            'description': row.description,
+            'seats': row.seats,
+            'waitlist': row.waitlist,
+            'system': {
+                'id': row.systemid,
+                'name': row.system
+            },
+            'day': {
+                'id': row.dayid,
+                'name': row.day
+            },
+            'time': {
+                'id': row.timeid,
+                'name': row.time
+            },
+            'dm': {
+                'id': row.dmid,
+                'name': row.dm
+            },
+            'players': []}
+        query = conn.execute("""
+            SELECT a.kumoId, b.name
+              FROM GameRegister a
+              JOIN Players b
+                ON a.kumoId = b.kumoId
+             WHERE gameId = :g
+            ORDER BY registered
+        """, g=row.id)
+        players = query.fetchall()
+        for player in players:
+            player = {
+                'id': player.kumoId,
+                'name': player.name
+            }
+            obj['players'].append(player)
+
+        response_obj['results'].append(obj)
     
     response_str = json.dumps(response_obj)
     return get_standard_response(response_str)

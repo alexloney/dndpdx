@@ -2,10 +2,10 @@
     <div class="left-bar">
         <div class="button-hdr">&nbsp;</div>
         <div class="btn">
-            <button pButton type="button" label="View My Games" class="ui-button-secondary"></button>
+            <button pButton type="button" label="View My Games" (click)="showMyGames()" class="ui-button-secondary"></button>
         </div>
         <div class="btn">
-            <button pButton type="button" label="View All Games" class="ui-button-secondary"></button>
+            <button pButton type="button" label="View All Games" (click)="showAllGames()" class="ui-button-secondary"></button>
         </div>
         <div class="btn bottom-btn">
             <button pButton type="button" label="Logout" (click)="logout()" class="ui-button-secondary"></button>
@@ -14,7 +14,7 @@
     <div class="right-body">
         <div class="body-contents">
             <app-filter [(filters)]="filters"></app-filter>
-            <app-gamelist [filters]="filters"></app-gamelist>
+            <app-gamelist [filters]="filters" [mygames]="myGames"></app-gamelist>
         </div>
     </div>
 </div>

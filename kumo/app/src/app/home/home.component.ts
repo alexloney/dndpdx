@@ -11,6 +11,7 @@ import { Component, OnInit } from '@angular/core';
 export class HomeComponent implements OnInit {
 
   public filters: string = '';
+  public myGames = false;
 
   constructor(private ds: DatabaseService,
     private confirmationService: ConfirmationService,
@@ -36,5 +37,13 @@ export class HomeComponent implements OnInit {
 
   public updateFilters(f) {
     console.log(f);
+  }
+
+  public showMyGames() {
+    this.myGames = true;
+  }
+
+  public showAllGames() {
+    this.myGames = false;
   }
 }

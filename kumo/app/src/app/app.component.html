@@ -3,6 +3,11 @@
     <base href="/">
   </head>
   <body>
+    <p-confirmDialog #cd appendTo="body">
+        <p-footer>
+            <button type="button" pButton icon="pi pi-check" label="OK" (click)="cd.accept()" class="ui-button-secondary"></button>
+        </p-footer>
+    </p-confirmDialog>
     <div class="body-container">
       <router-outlet></router-outlet>
     </div>

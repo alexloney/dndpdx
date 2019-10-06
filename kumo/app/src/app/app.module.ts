@@ -20,7 +20,7 @@ import { HomeComponent } from './home/home.component';
 import { GamelistComponent } from './gamelist/gamelist.component';
 import { GameComponent } from './game/game.component';
 import { FilterComponent } from './filter/filter.component';
-
+import {ListboxModule} from 'primeng/listbox';
 
 @NgModule({
   declarations: [
@@ -42,7 +42,8 @@ import { FilterComponent } from './filter/filter.component';
     BrowserAnimationsModule,
     ProgressSpinnerModule,
     ConfirmDialogModule,
-    DropdownModule
+    DropdownModule,
+    ListboxModule
   ],
   providers: [
     ConfirmationService

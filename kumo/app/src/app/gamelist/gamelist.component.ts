@@ -10,6 +10,7 @@ import { timeout } from 'rxjs/operators';
 export class GamelistComponent implements OnInit, OnChanges {
 
   @Input() filters: string;
+  @Input() mygames: boolean;
 
   private _filters: any = {};
 
@@ -26,6 +27,10 @@ export class GamelistComponent implements OnInit, OnChanges {
           console.error(e);
         }
       }
+    } else if (changes.hasOwnProperty('mygames')) {
+      console.log(changes);
+
+      this.getGames();
     }
   }
 
@@ -46,10 +51,14 @@ export class GamelistComponent implements OnInit, OnChanges {
   public games: any = [];
 
   constructor(private db: DatabaseService) {
-    // setTimeout(() => {
-    //   console.log(this.filters);
-    // }, 15000);
-    db.getAllGames().subscribe(
+    this.getGames();
+  }
+
+  ngOnInit() {
+  }
+
+  private getGames() {
+    this.db.getAllGames(this.mygames).subscribe(
       (success: any) => {
         if (success.hasOwnProperty('errorMsg')) {
           console.error(success);
@@ -62,15 +71,26 @@ export class GamelistComponent implements OnInit, OnChanges {
         for (let game of this.games) {
           game.visible = true;
         }
+        /*
+        for (let game of this.games) {
+          game.seated = [];
+          game.waiting = [];
+
+          for (let i = 0; i < game.players.length; ++i) {
+            if (i < game.seats) {
+              game.seated.append(game.players[i]);
+            } else {
+              game.waiting.append(game.players[i]);
+            }
+          }
+        }
+        */
       },
       (failure) => {
 
       },
       () => {}
     );
-  }
-
-  ngOnInit() {
   }
 
   private applyFilters() {
