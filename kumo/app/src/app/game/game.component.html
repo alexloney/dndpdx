@@ -35,8 +35,8 @@
                 <div class="ui-g-11">
                     <span *ngIf="editingEnabled">
                         <p-dropdown [options]="dms" [(ngModel)]="editedGame.dm"></p-dropdown>
-                        <input *ngIf="editedGame.dm.id == 0" pInputText placeholder="DM Name" type="text" [(ngModel)]="newDmName" class="inline-edit" />
                         <input *ngIf="editedGame.dm.id == 0" pInputText placeholder="DM Kumo ID" type="text" [(ngModel)]="newDmId" class="inline-edit" />
+                        <input *ngIf="editedGame.dm.id == 0" pInputText placeholder="DM Name" type="text" [(ngModel)]="newDmName" class="inline-edit" />
                         <div *ngIf="errorMessages.dm.length > 0" class="error-text">
                             {{ errorMessages.dm }}
                         </div>

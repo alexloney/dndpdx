@@ -114,6 +114,10 @@ export class DatabaseService {
     return this.http.post(this.endpoint + 'games/deregister/' + id, null, this.getHeaders('json'));
   }
 
+  public updateGameDetails(data) {
+    return this.http.post(this.endpoint + 'games/update/' + data.id, data, this.getHeaders('json'));
+  }
+
   private extractData(res: Response) {
     let body = res;
     return body || { };

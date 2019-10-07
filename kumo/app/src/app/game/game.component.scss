@@ -43,6 +43,10 @@
 .error-text {
     color: red;
 }
+
+.popup-content-block {
+    max-height: calc(100vh - 250px);
+}
 /*
 p-dialog .ui-dialog {
     overflow: scroll !important;

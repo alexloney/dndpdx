@@ -281,6 +281,24 @@ def validate_session(session_id):
         return False
     return True
 
+def session_is_admin(player_id):
+
+    if player_id == None:
+        return False
+
+    conn = db_connect.connect()
+    query = conn.execute('SELECT COUNT(*) AS cnt FROM Players WHERE kumoId = :i AND admin = 1', i = player_id)
+    result = query.fetchone()
+    query.close()
+
+    if result == None:
+        return False
+    
+    if int(result['cnt']) == 1:
+        return True
+    
+    return False
+
 def get_player_id(session_id):
     if session_id == None:
         return False
@@ -600,7 +618,13 @@ def get_game_by_id(id):
     """, g=id)
     row = query.fetchone()
     query.close()
-    
+
+    if not row:
+        response_str = json.dumps({
+            'errorMsg': 'Unable to locate game with id ' + str(id)
+        })
+        return get_standard_response(response_str)
+
     response_obj = {
         'results': [
 
@@ -889,6 +913,198 @@ def is_user_registered(id):
     })
     return get_standard_response(response_str)
 
+@app.route('/games/update/<id>', methods=['POST'])
+def update_game(id):
+    session_id = request.headers.get('Authorization')
+    print(session_id)
+
+    print('Validating Session ID')
+    if not validate_session(session_id):
+        response_str = json.dumps({
+            'errorMsg': 'Invalid session, please log in first.'
+        })
+        return get_standard_response(response_str)
+    
+    print('Getting player ID')
+    player_id = get_player_id(session_id)
+    if player_id == False:
+        response_str = json.dumps({
+            'errorMsg': 'Invalid session, please log in first.'
+        })
+        return get_standard_response(response_str)
+
+    print('Validating that user is an admin')
+    if not session_is_admin(player_id):
+        response_str = json.dumps({
+            'errorMsg': 'Only Admin may perform this action.'
+        })
+        return get_standard_response(response_str)
+    
+    data = request.get_json()
+    print(data)
+
+    conn = db_connect.connect()
+
+    if int(data['system']['id']) == 0:
+        query = conn.execute("""
+            SELECT id, name FROM GameSystems WHERE name = :n
+        """, n = data['system']['name'])
+        result = query.fetchone()
+        query.close()
+
+        if result:
+            data['system']['id'] = result['id']
+        else:
+            query = conn.execute("""
+                INSERT INTO GameSystems (name) VALUES (:n)
+            """, n = data['system']['name'])
+            query.close()
+
+            query = conn.execute("""
+                SELECT id, name FROM GameSystems WHERE name = :n
+            """, n = data['system']['name'])
+            result = query.fetchone()
+            query.close()
+
+            if result:
+                data['system']['id'] = result['id']
+            else:
+                response_str = json.dumps({
+                    'errorMsg': 'Unable to create new game system.'
+                })
+                return get_standard_response(response_str)
+
+    
+    query = conn.execute("""
+        SELECT kumoId, name FROM Players WHERE kumoId = :i
+    """, i = data['dm']['id'])
+    result = query.fetchone()
+    query.close()
+
+    if not result:
+        query = conn.execute("""
+            INSERT INTO Players (kumoId, name, dm) VALUES (:i, :n, 1)
+        """, i = data['dm']['id'], n = data['dm']['name'])
+        query.close()
+
+        query = conn.execute("""
+            SELECT kumoId, name FROM Players WHERE kumoId = :i AND dm = 1
+        """, i = data['dm']['id'])
+        result = query.fetchone()
+
+        if not result:
+            response_str = json.dumps({
+                'errorMsg': 'Unable to create new DM.'
+            })
+            return get_standard_response(response_str)
+
+    if int(data['day']['id']) == 0:
+        query = conn.execute("""
+            SELECT id, name FROM Days WHERE name = :n
+        """, n = data['day']['name'])
+        result = query.fetchone()
+        query.close()
+
+        if result:
+            data['day']['id'] = result['id']
+        else:
+            query = conn.execute("""
+                INSERT INTO Days (name) VALUES (:n)
+            """, n = data['day']['name'])
+            query.close()
+
+            query = conn.execute("""
+                SELECT id, name FROM Days WHERE name = :n
+            """, n = data['day']['name'])
+            result = query.fetchone()
+            query.close()
+
+            if result:
+                data['day']['id'] = result['id']
+            else:
+                response_str = json.dumps({
+                    'errorMsg': 'Unable to create new day.'
+                })
+                return get_standard_response(response_str)
+
+
+    if int(data['time']['id']) == 0:
+        query = conn.execute("""
+            SELECT id, name FROM Times WHERE name = :n
+        """, n = data['time']['name'])
+        result = query.fetchone()
+        query.close()
+
+        if result:
+            data['time']['id'] = result['id']
+        else:
+            query = conn.execute("""
+                INSERT INTO Times (name) VALUES (:n)
+            """, n = data['time']['name'])
+            query.close()
+
+            query = conn.execute("""
+                SELECT id, name FROM Times WHERE name = :n
+            """, n = data['time']['name'])
+            result = query.fetchone()
+            query.close()
+
+            if result:
+                data['time']['id'] = result['id']
+            else:
+                response_str = json.dumps({
+                    'errorMsg': 'Unable to create time.'
+                })
+                return get_standard_response(response_str)
+
+    query = conn.execute("""
+        UPDATE Games
+           SET name = :n,
+               description = :d,
+               systemid = :s,
+               dayid = :a,
+               timeid = :t,
+               dmid = :m,
+               seats = :e,
+               waitlist = :w
+         WHERE id = :i
+    """, n = data['name'],
+    d = data['description'],
+    s = data['system']['id'],
+    a = data['day']['id'],
+    t = data['time']['id'],
+    m = data['dm']['id'],
+    e = data['seats'],
+    w = data['waitlist'],
+    i = data['id'])
+
+    player_ids = []
+    for player in data['players']:
+        player_ids.append(player['id'])
+    
+    query = conn.execute("SELECT kumoId FROM GameRegister WHERE gameId = :g AND kumoId IN (" + ', '.join(str(x) for x in player_ids) + ")", g = data['id'])
+    rows = query.fetchall()
+    query.close()
+
+    remove_ids = []
+    for player in data['players']:
+        found = False
+        for row in rows:
+            if row['kumoId'] == player['id']:
+                found = True
+        
+        if not found:
+            remove_ids.append(player['id'])
+
+    # TODO: Should we also allow adding users here?
+
+    if len(remove_ids) > 0:
+        query = conn.execute("DELETE FROM GameRegister WHERE gameId = :g AND kumoId IN (" + ', '.join(str(x) for x in player_ids) + ")", g = data['id'])
+
+    response_str = json.dumps({
+        'success': True
+    })
+    return get_standard_response(response_str)
 
 @app.route('/logout', methods=['POST'])
 def logout():

@@ -131,7 +131,7 @@ export class GameComponent implements OnInit {
         this.errorMessages.dm = '<div>You must provide a DM Name</div>';
         pass = false;
       }
-      
+
       if (this.newDmId.length === 0) {
         this.errorMessages.dm += '<div>You must provide a DM Kumo ID</div>';
         pass = false;
@@ -146,7 +146,7 @@ export class GameComponent implements OnInit {
     }
 
     if (this.editedGame.day.id === 0) {
-      if (this.newDmId.length === 0) {
+      if (this.newDay.length === 0) {
         this.errorMessages.day = 'You must provide a Day Name';
         pass = false;
       }
@@ -364,7 +364,56 @@ export class GameComponent implements OnInit {
   public saveEdits() {
     console.log(this.editedGame);
     if (this.validateFields()) {
-      // TODO: Proceed with saving
+      if (this.editedGame.system.id === 0) {
+        this.editedGame.system.name = this.newSystemName;
+      }
+      if (this.editedGame.dm.id === 0) {
+        this.editedGame.dm.id = this.newDmId;
+        this.editedGame.dm.name = this.newDmName;
+      }
+      if (this.editedGame.day.id === 0) {
+        this.editedGame.day.name = this.newDay;
+      }
+      if (this.editedGame.time.id === 0) {
+        this.editedGame.time.name = this.newTime;
+      }
+
+      this.db.updateGameDetails(this.editedGame).subscribe(
+        (success: any) => {
+          console.log(success);
+          if (success.hasOwnProperty('errorMsg')) {
+            this.confirmationService.confirm({
+              header: 'Error',
+              message: success.errorMsg,
+              icon: 'pi pi-exclamation-triangle',
+              accept: () => {}
+            });
+          } else {
+            this.editingEnabled = false;
+          }
+
+        }, (failure) => {
+          console.error(failure);
+          if (failure.hasOwnProperty('errorMsg')) {
+            this.confirmationService.confirm({
+              header: 'Error',
+              message: failure.errorMsg,
+              icon: 'pi pi-exclamation-triangle',
+              accept: () => {}
+            });
+          } else {
+            this.confirmationService.confirm({
+              header: 'Error',
+              message: 'Unknown error',
+              icon: 'pi pi-exclamation-triangle',
+              accept: () => {}
+            });
+          }
+
+        }, () => {
+          this.refreshGame();
+        }
+      )
     }
   }
 
